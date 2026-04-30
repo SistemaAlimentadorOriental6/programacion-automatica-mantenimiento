@@ -56,6 +56,9 @@ jobs:
     needs: [backend, frontend]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -71,24 +74,14 @@ jobs:
         with:
           version: 9
 
-      # Si el directorio ya existe hace pull, si no existe hace clone
-      - name: Actualizar código en producción
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+      # Sincroniza los archivos nuevos al directorio de producción sin borrar .env ni logs
+      - name: Sincronizar archivos a producción
         run: |
           DEPLOY_DIR="/var/www/mantenimiento/programacion-automatia"
-          REPO_URL="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/SistemaAlimentadorOriental6/programacion-automatica-mantenimiento.git"
-
-          if [ -d "$DEPLOY_DIR/.git" ]; then
-            echo "📥 Repositorio existente — ejecutando git pull..."
-            # Evitamos que el credential helper del servidor interfiera con nuestro token
-            git -c credential.helper= -C "$DEPLOY_DIR" pull "$REPO_URL" main
-          else
-            echo "🆕 Primera vez — clonando repositorio..."
-            mkdir -p "$DEPLOY_DIR"
-            git -c credential.helper= clone "$REPO_URL" "$DEPLOY_DIR"
-          fi
+          mkdir -p "$DEPLOY_DIR"
+          
+          echo "Sincronizando archivos nuevos..."
+          rsync -av --exclude='.git/' --exclude='node_modules/' --exclude='backend/server' --exclude='backend.log' --exclude='.env' ./ "$DEPLOY_DIR/"
 
       # Compila el backend Go desde la ruta de producción
       - name: Compilar Backend Go
