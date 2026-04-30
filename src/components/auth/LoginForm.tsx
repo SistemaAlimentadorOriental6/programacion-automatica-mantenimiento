@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { API_URL } from '../../config/api';
 import {
     Mail01Icon,
     ViewIcon,
@@ -21,7 +22,7 @@ export default function LoginForm() {
         setError('');
 
         try {
-            const res = await fetch('http://localhost:4000/api/auth/login', {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),

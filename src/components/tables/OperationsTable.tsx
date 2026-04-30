@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { API_URL } from '../../config/api';
 import Modal from '../ui/Modal';
 import {
     ArrowUp01Icon,
@@ -35,7 +36,7 @@ export default function OperationsTable() {
             }
 
             try {
-                const res = await fetch('http://localhost:4000/api/reports', {
+                const res = await fetch(`${API_URL}/reports`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

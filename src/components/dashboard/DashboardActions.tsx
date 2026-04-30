@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { API_URL } from '../../config/api';
 import {
     Layers01Icon,
     Calendar03Icon,
@@ -140,7 +141,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             // Obtener datos desde el backend
             let partesMap: Record<string, any> = {};
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:4000/api/reports/partes-excel', {
+            const res = await fetch(`${API_URL}/reports/partes-excel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

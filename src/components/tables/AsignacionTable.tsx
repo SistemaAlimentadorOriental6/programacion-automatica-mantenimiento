@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { API_URL } from '../../config/api';
 import {
     UserGroupIcon,
     Tick01Icon,
@@ -42,11 +43,11 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
         const fetchDatos = async () => {
             const token = localStorage.getItem('token');
             const headers = { 'Authorization': `Bearer ${token}` };
-            
+
             // Cargar ambos en paralelo
             const [resRes, resTec] = await Promise.all([
-                fetch('http://localhost:4000/api/reports/responsables', { headers }),
-                fetch('http://localhost:4000/api/reports/tecnicos', { headers })
+                fetch(`${API_URL}/reports/responsables`, { headers }),
+                fetch(`${API_URL}/reports/tecnicos`, { headers })
             ]);
 
             if (resRes.ok) setResponsables(await resRes.json());
@@ -71,7 +72,7 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
 
     const handleFieldChange = (rowIds: string[], field: string, value: any) => {
         let finalValue = value;
-        
+
         // Validación específica para Prioridad: Solo el primer dígito
         if (field === 'codigoPrioridad') {
             const match = value.toString().match(/\d/);
@@ -307,11 +308,10 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
                                 setContextMenu(null);
                             }, 400);
                         }}
-                        class={`flex items-center gap-3 px-5 py-3 rounded-2xl text-[11px] font-black transition-all active:scale-95 whitespace-nowrap shadow-lg ${
-                            isUpdating 
-                            ? 'bg-emerald-100 text-emerald-600 shadow-emerald-200/50 scale-95' 
-                            : 'bg-[#4cc253] text-white hover:shadow-[#4cc253]/30 hover:-translate-y-0.5'
-                        }`}
+                        class={`flex items-center gap-3 px-5 py-3 rounded-2xl text-[11px] font-black transition-all active:scale-95 whitespace-nowrap shadow-lg ${isUpdating
+                                ? 'bg-emerald-100 text-emerald-600 shadow-emerald-200/50 scale-95'
+                                : 'bg-[#4cc253] text-white hover:shadow-[#4cc253]/30 hover:-translate-y-0.5'
+                            }`}
                     >
                         <div class={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${isUpdating ? 'bg-emerald-200' : 'bg-white/20'}`}>
                             {isUpdating ? (

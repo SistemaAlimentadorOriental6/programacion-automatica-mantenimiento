@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { API_URL } from '../../config/api';
 import {
     DropletIcon,
     Settings01Icon,
@@ -577,7 +578,7 @@ export default function DashboardGrid() {
 
         const fetchLubricacion = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/reports/lubricacion', {
+                const res = await fetch(`${API_URL}/reports/lubricacion`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -593,7 +594,7 @@ export default function DashboardGrid() {
 
         const fetchDiagnostico = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/reports/diagnostico', {
+                const res = await fetch(`${API_URL}/reports/diagnostico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -609,7 +610,7 @@ export default function DashboardGrid() {
 
         const fetchEngrase = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/reports/engrase', {
+                const res = await fetch(`${API_URL}/reports/engrase`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -824,7 +825,7 @@ export default function DashboardGrid() {
 
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:4000/api/reports/partes-excel', {
+                const res = await fetch(`${API_URL}/reports/partes-excel`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

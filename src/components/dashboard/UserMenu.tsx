@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { API_URL } from '../../config/api';
 import {
     UserIcon,
     Logout01Icon
@@ -16,7 +17,7 @@ export default function UserMenu() {
             if (!token) return;
 
             try {
-                const res = await fetch('http://localhost:4000/api/auth/get-data', {
+                const res = await fetch(`${API_URL}/auth/get-data`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
