@@ -69,7 +69,7 @@ export default function LoginForm() {
             {/* Campo Contraseña */}
             <div class="group relative">
                 <label class="block text-xs font-bold text-texto-grey uppercase tracking-widest mb-2">
-                    Contraseña (NIT)
+                    Contraseña
                 </label>
                 <div class="relative flex items-center">
                     <div class="absolute left-4 text-texto-grey transition-colors group-focus-within:text-primary z-10 pointer-events-none">
