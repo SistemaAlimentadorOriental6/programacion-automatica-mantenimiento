@@ -113,7 +113,7 @@ jobs:
         working-directory: /var/www/mantenimiento/programacion-automatia
         run: |
           pm2 delete programacion_automatia_frontend || true
-          pm2 start "pnpm dlx serve -s dist -l 3044" --name programacion_automatia_frontend
+          pm2 start "pnpm dlx serve dist -l 3044" --name programacion_automatia_frontend
           pm2 save
 
       - name: Deploy completado
