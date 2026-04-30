@@ -75,18 +75,19 @@ jobs:
       - name: Actualizar código en producción
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: |
           DEPLOY_DIR="/var/www/mantenimiento/programacion-automatia"
-          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/SistemaAlimentadorOriental6/programacion-automatica-mantenimiento.git"
+          REPO_URL="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/SistemaAlimentadorOriental6/programacion-automatica-mantenimiento.git"
 
           if [ -d "$DEPLOY_DIR/.git" ]; then
             echo "📥 Repositorio existente — ejecutando git pull..."
-            # Hacemos pull directamente usando la URL con el token (sin guardarlo por seguridad)
-            git -C "$DEPLOY_DIR" pull "$REPO_URL" main
+            # Evitamos que el credential helper del servidor interfiera con nuestro token
+            git -c credential.helper= -C "$DEPLOY_DIR" pull "$REPO_URL" main
           else
             echo "🆕 Primera vez — clonando repositorio..."
             mkdir -p "$DEPLOY_DIR"
-            git clone "$REPO_URL" "$DEPLOY_DIR"
+            git -c credential.helper= clone "$REPO_URL" "$DEPLOY_DIR"
           fi
 
       # Compila el backend Go desde la ruta de producción
