@@ -1,0 +1,113 @@
+name: CI/CD Programación Automatía
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # ─── Validar Backend ────────────────────────────────────────────
+  backend:
+    name: Build Backend
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Descargar dependencias y compilar
+        run: |
+          go -C ./backend mod download
+          go -C ./backend build -o server ./cmd/api/main.go
+
+  # ─── Validar Frontend ───────────────────────────────────────────
+  frontend:
+    name: Build Frontend
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Instalar dependencias y compilar Astro
+        run: |
+          pnpm install
+          pnpm run build
+
+  # ─── Deploy ─────────────────────────────────────────────────────
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, Linux, X64]
+    needs: [backend, frontend]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      # Copia el repositorio al directorio de producción
+      - name: Copiar a directorio de producción
+        run: |
+          mkdir -p /var/www/mantenimiento/programacion-automatia
+          cp -r . /var/www/mantenimiento/programacion-automatia/
+
+      # Compila el backend Go desde la ruta correcta
+      - name: Compilar Backend Go
+        run: |
+          go -C /var/www/mantenimiento/programacion-automatia/backend mod download
+          go -C /var/www/mantenimiento/programacion-automatia/backend build -o server ./cmd/api/main.go
+
+      # Instala dependencias y genera el build estático de Astro
+      - name: Build del Frontend Astro
+        working-directory: /var/www/mantenimiento/programacion-automatia
+        run: |
+          pnpm install
+          pnpm run build
+
+      # Reinicia el proceso del backend con PM2
+      - name: Reiniciar Backend con PM2
+        working-directory: /var/www/mantenimiento/programacion-automatia/backend
+        run: |
+          pm2 delete programacion_automatia_backend || true
+          PORT=3043 pm2 start ./server --name programacion_automatia_backend
+          pm2 save
+
+      # Sirve el frontend estático generado por Astro (carpeta dist/)
+      - name: Reiniciar Frontend con PM2
+        working-directory: /var/www/mantenimiento/programacion-automatia
+        run: |
+          pm2 delete programacion_automatia_frontend || true
+          pm2 start "pnpm dlx serve -s dist -l 3044" --name programacion_automatia_frontend
+          pm2 save
+
+      - name: Deploy completado
+        run: echo "Deploy exitoso — Frontend:3044 | Backend:3043"

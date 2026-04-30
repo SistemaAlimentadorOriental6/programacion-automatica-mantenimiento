@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #4cc253;
+  --color-primary-raw: 76, 194, 83;
+  --color-fondo-app: #ffffff;
+  --color-fondo-soft: #f4f7f8;
+  --color-texto-dark: #2c3e50;
+  --color-texto-grey: #a0a6ae;
+  
+  --radius-soft: 14px;
+  --radius-premium: 28px;
+  
+  --shadow-premium: 0px 10px 30px -5px rgba(0, 0, 0, 0.05);
+
+  /* Animaciones Custom */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.2; transform: scale(1.1); }
+}
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-[var(--color-fondo-app)] text-[var(--color-texto-dark)];
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .input-premium {
+    @apply w-full py-4 pl-12 pr-4 bg-[var(--color-fondo-soft)] border-2 border-transparent rounded-[var(--radius-soft)] text-base font-medium transition-all duration-250 ease-in-out placeholder:text-[var(--color-texto-grey)] placeholder:opacity-70;
+  }
+  
+  .input-premium:focus {
+    @apply outline-none bg-white border-primary -translate-y-0.5;
+    box-shadow: 0px 8px 25px rgba(var(--color-primary-raw), 0.15);
+  }
+  
+  .btn-premium {
+    @apply w-full py-4 px-8 bg-primary text-white font-semibold rounded-[var(--radius-soft)] transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)];
+    box-shadow: 0px 10px 20px -10px rgba(var(--color-primary-raw), 0.5);
+  }
+  
+  .btn-premium:hover {
+    @apply -translate-y-1;
+    box-shadow: 0px 10px 25px -5px rgba(var(--color-primary-raw), 0.6);
+  }
+  
+  .btn-premium:active {
+    @apply scale-95;
+  }
+}
