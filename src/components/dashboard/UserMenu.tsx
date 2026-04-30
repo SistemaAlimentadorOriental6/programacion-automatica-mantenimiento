@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
     UserIcon,
-    Logout01Icon,
-    Settings02Icon
+    Logout01Icon
 } from '@hugeicons/core-free-icons';
 
 export default function UserMenu() {

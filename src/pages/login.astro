@@ -103,7 +103,7 @@ import { ClientRouter } from "astro:transitions";
                         </p>
                     </div>
 
-                    <LoginForm client:load />
+                    <LoginForm client:only="preact" />
 
                     <div
                         class="mt-14 text-center text-sm text-texto-grey font-medium flex flex-col items-center gap-2"

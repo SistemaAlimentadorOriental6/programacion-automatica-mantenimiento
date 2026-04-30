@@ -9,7 +9,6 @@ import {
     Layers01Icon,
     Cancel01Icon,
     ArrowRight01Icon,
-    InformationCircleIcon,
     Alert01Icon,
     Tick01Icon
 } from '@hugeicons/core-free-icons';

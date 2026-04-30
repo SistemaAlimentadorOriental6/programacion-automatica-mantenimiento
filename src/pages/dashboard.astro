@@ -49,7 +49,7 @@ import { ClientRouter } from "astro:transitions";
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <UserMenu client:load />
+                        <UserMenu client:only="preact" />
                     </div>
                 </div>
             </div>
@@ -71,11 +71,11 @@ import { ClientRouter } from "astro:transitions";
                     </div>
 
                     <!-- Acciones Globales Interactivas -->
-                    <DashboardActions client:load />
+                    <DashboardActions client:only="preact" />
                 </div>
 
                 <!-- Grid Dinámico con Funcionalidad de Ampliar -->
-                <DashboardGrid client:load />
+                <DashboardGrid client:only="preact" />
             </div>
         </main>
 
