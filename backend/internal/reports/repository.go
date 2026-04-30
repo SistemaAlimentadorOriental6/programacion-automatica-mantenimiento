@@ -46,9 +46,22 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 	}
 
 	query := `
-		SELECT codigo_activo as bus, tarea, estado_tarea as estado, tarea_abierta_posterior, frecuencia_tarea_ultima, duracion_hoy_ied 
-		FROM reporte_tareas 
+		SELECT
+			codigo_activo AS bus,
+			tarea,
+			estado_tarea AS estado,
+			tarea_abierta_posterior,
+			frecuencia_tarea_ultima,
+			duracion_hoy_ied,
+			bus_en_franja_hoy
+		FROM reporte_tareas
 		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
+		AND estado_bus IS NULL
+		AND bus_en_franja_hoy IN ('SI', 'NO')
+		AND (
+			dias_en_franja_actual <= 1
+			OR dias_en_franja_actual IS NULL
+		);
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -60,10 +73,12 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta sql.NullString
-		var frecuenciaUltima sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy); err != nil {
+
+		// El Scan debe coincidir con el número de columnas del SELECT
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
+			log.Printf("[ERROR] Scan en GetEngraseReports: %v", err)
 			continue
 		}
 		if tareaAbierta.Valid {
@@ -102,8 +117,15 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 			estado_tarea as estado,
 			tarea_abierta_posterior,
 			frecuencia_tarea_ultima,
-			duracion_hoy_ied
+			duracion_hoy_ied,
+			bus_en_franja_hoy
 		FROM reporte_tareas
+		WHERE estado_bus IS NULL
+		AND bus_en_franja_hoy IN ('SI', 'NO')
+		AND (
+			dias_en_franja_actual <= 1
+			OR dias_en_franja_actual IS NULL
+		)
 	`
 
 	rows, err := r.db.Query(query)
@@ -116,10 +138,9 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta sql.NullString
-		var frecuenciaUltima sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
 			return nil, fmt.Errorf("error al escanear fila: %w", err)
 		}
 		if tareaAbierta.Valid {
@@ -258,9 +279,22 @@ func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
 
 	// 3. Obtener todas las tareas candidatas (proxima/vencida) de Programación
 	query := `
-		SELECT codigo_activo as bus, tarea, estado_tarea as estado, tarea_abierta_posterior, frecuencia_tarea_ultima, duracion_hoy_ied 
+		SELECT 
+			codigo_activo as bus, 
+			tarea, 
+			estado_tarea as estado, 
+			tarea_abierta_posterior, 
+			frecuencia_tarea_ultima, 
+			duracion_hoy_ied,
+			bus_en_franja_hoy
 		FROM reporte_tareas 
 		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
+		AND estado_bus IS NULL
+		AND bus_en_franja_hoy IN ('SI', 'NO')
+		AND (
+			dias_en_franja_actual <= 1
+			OR dias_en_franja_actual IS NULL
+		)
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -272,10 +306,9 @@ func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta sql.NullString
-		var frecuenciaUltima sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
 			continue
 		}
 		if tareaAbierta.Valid {
@@ -308,9 +341,22 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 	}
 
 	query := `
-		SELECT codigo_activo as bus, tarea, estado_tarea as estado, tarea_abierta_posterior, frecuencia_tarea_ultima, duracion_hoy_ied 
+		SELECT 
+			codigo_activo as bus, 
+			tarea, 
+			estado_tarea as estado, 
+			tarea_abierta_posterior, 
+			frecuencia_tarea_ultima, 
+			duracion_hoy_ied,
+			bus_en_franja_hoy
 		FROM reporte_tareas 
 		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
+		AND estado_bus IS NULL
+		AND bus_en_franja_hoy IN ('SI', 'NO')
+		AND (
+			dias_en_franja_actual <= 1
+			OR dias_en_franja_actual IS NULL
+		)
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -322,10 +368,9 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta sql.NullString
-		var frecuenciaUltima sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
 			continue
 		}
 		if tareaAbierta.Valid {

@@ -322,12 +322,16 @@ export default function DashboardGrid() {
             const busesEng = new Set(currentEngData.map(d => d.bus));
             const busesDiag = new Set(currentDiagData.map(d => d.bus));
 
-            // 1. Identificar buses con selección manual previa (Prioridad absoluta)
-            const busesSeleccionadosManualmente = new Set<string>();
+            // 1. Identificar en cuántas TABLAS tiene selección manual cada bus (Prioridad absoluta)
+            const tablesCheckedForBus = new Map<string, Set<number>>();
             selectedRows.forEach(key => {
                 const [tIdx, fIdx] = key.split('-').map(Number);
                 const d = tIdx === 1 ? lubricacionData : tIdx === 2 ? engraseData : diagnosticoData;
-                if (d[fIdx] && !d[fIdx].isPlaceholder) busesSeleccionadosManualmente.add(d[fIdx].bus);
+                if (d[fIdx] && !d[fIdx].isPlaceholder) {
+                    const bus = d[fIdx].bus;
+                    if (!tablesCheckedForBus.has(bus)) tablesCheckedForBus.set(bus, new Set());
+                    tablesCheckedForBus.get(bus)!.add(tIdx);
+                }
             });
 
             // Conteo de tareas por bus y tabla
@@ -365,19 +369,17 @@ export default function DashboardGrid() {
                 busOccurrenceCount.set(bus, count);
                 
                 // Se alinean arriba si se repiten O si el usuario ya los marcó
-                if (count >= 2 || busesSeleccionadosManualmente.has(bus)) {
+                if (count >= 2 || tablesCheckedForBus.has(bus)) {
                     newRepeated.add(bus);
                 }
             });
 
-            // 3. Ordenar priorizando: 1. Selección Manual, 2. Urgencia, 3. Repetición
-            const sortedRepeated = [...newRepeated].sort((a, b) => {
-                // Prioridad 1: Selección manual del usuario
-                const selA = busesSeleccionadosManualmente.has(a) ? 1 : 0;
-                const selB = busesSeleccionadosManualmente.has(b) ? 1 : 0;
-                if (selA !== selB) return selB - selA;
+            // 3. Primer Ordenamiento (Ideal/Inicial)
+            const initialSortedRepeated = [...newRepeated].sort((a, b) => {
+                const tablesA = tablesCheckedForBus.get(a)?.size || 0;
+                const tablesB = tablesCheckedForBus.get(b)?.size || 0;
+                if (tablesA !== tablesB) return tablesB - tablesA;
 
-                // Prioridad 2: Urgencia (vencidas/proximas)
                 if (priority) {
                     const urgA = busesUrgentes.has(a) ? 1 : 0;
                     const urgB = busesUrgentes.has(b) ? 1 : 0;
@@ -394,13 +396,9 @@ export default function DashboardGrid() {
                 
                 return a.localeCompare(b);
             });
-            const newOrder = new Map(sortedRepeated.map((bus, i) => [bus, i]));
-
-            setRepeatedBuses(newRepeated);
-            setRepeatedBusOrder(newOrder);
 
             // Función para ordenar y RELLENAR con espacios en blanco (alineación)
-            const prepararDatosAlineados = (sourceData: { bus: string; tarea: string; [key: string]: any }[]) => {
+            const prepararDatosAlineados = (sourceData: { bus: string; tarea: string; [key: string]: any }[], customSortedRepeated: string[]) => {
                 // LIMPIEZA PROFUNDA: Filtramos cualquier placeholder previo Y tareas que sean "basura" (vacías, puntos, guiones)
                 const rawData = sourceData.filter(d => {
                     if (d.isPlaceholder) return false;
@@ -424,7 +422,7 @@ export default function DashboardGrid() {
                 const resultado: any[] = [];
 
                 // 3. Zona Agrupada: Buses detectados en 2 o más tablas
-                sortedRepeated.forEach(bus => {
+                customSortedRepeated.forEach(bus => {
                     const tasks = rawData.filter(d => d.bus === bus);
                     if (tasks.length > 0) {
                         tasks.forEach(t => {
@@ -475,20 +473,14 @@ export default function DashboardGrid() {
                 return resultado;
             };
 
-            const sortedLub = prepararDatosAlineados(currentLubData);
-            const sortedEng = prepararDatosAlineados(currentEngData);
-            const sortedDiag = prepararDatosAlineados(currentDiagData);
+            const tempSortedLub = prepararDatosAlineados(currentLubData, initialSortedRepeated);
+            const tempSortedEng = prepararDatosAlineados(currentEngData, initialSortedRepeated);
+            const tempSortedDiag = prepararDatosAlineados(currentDiagData, initialSortedRepeated);
 
-            setLubricacionData(sortedLub);
-            setEngraseData(sortedEng);
-            setDiagnosticoData(sortedDiag);
-
-            const newSelected = new Set<string>();
-            // Seleccionar solo filas que NO sean placeholders y pertenezcan a buses repetidos, respetando los límites
+            const tempSelected = new Set<string>();
             const busesSeleccionadosPorTabla: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set() };
 
             const agregarSiCabe = (lista: any[], tablaIdx: 1|2|3) => {
-                // Primero intentamos agregar tareas que coincidan EXACTAMENTE con la prioridad
                 if (priority) {
                     lista.forEach((d, i) => {
                         if (d.isPlaceholder || !d.estado) return;
@@ -506,41 +498,104 @@ export default function DashboardGrid() {
                         const limite = SELECTION_LIMITS[tablaIdx];
                         const setBuses = busesSeleccionadosPorTabla[tablaIdx];
                         
-                        // Si cabe el vehículo o ya está siendo contado, seleccionamos LA TAREA
                         if (setBuses.has(d.bus) || setBuses.size < limite) {
                             setBuses.add(d.bus);
-                            newSelected.add(`${tablaIdx}-${i}`);
+                            tempSelected.add(`${tablaIdx}-${i}`);
                         }
                     });
                 }
 
-                // Luego, si NO hay prioridad o para rellenar huecos con buses repetidos:
-                // Seleccionamos tareas de buses repetidos (o manuales) respetando el límite
                 lista.forEach((d, i) => {
                     if (d.isPlaceholder || !newRepeated.has(d.bus)) return;
-                    
-                    // Si ya está seleccionada (por prioridad arriba), la saltamos
-                    if (newSelected.has(`${tablaIdx}-${i}`)) return;
-
-                    // Si hay prioridad activa, NO seleccionamos automáticamente tareas que no coincidan
-                    // a menos que el usuario lo haga manualmente después
+                    if (tempSelected.has(`${tablaIdx}-${i}`)) return;
                     if (priority) return;
 
                     const limite = SELECTION_LIMITS[tablaIdx];
                     const setBuses = busesSeleccionadosPorTabla[tablaIdx];
                     if (setBuses.has(d.bus) || setBuses.size < limite) {
                         setBuses.add(d.bus);
-                        newSelected.add(`${tablaIdx}-${i}`);
+                        tempSelected.add(`${tablaIdx}-${i}`);
                     }
                 });
             };
 
-            agregarSiCabe(sortedLub, 1);
-            agregarSiCabe(sortedEng, 2);
-            agregarSiCabe(sortedDiag, 3);
+            agregarSiCabe(tempSortedLub, 1);
+            agregarSiCabe(tempSortedEng, 2);
+            agregarSiCabe(tempSortedDiag, 3);
+            
+            // 5. SEGUNDO ORDENAMIENTO (Definitivo, basado en la selección real autocalculada)
+            const finalSortedRepeated = [...newRepeated].sort((a, b) => {
+                let countA = 0; let countB = 0;
+                if (busesSeleccionadosPorTabla[1].has(a)) countA++;
+                if (busesSeleccionadosPorTabla[2].has(a)) countA++;
+                if (busesSeleccionadosPorTabla[3].has(a)) countA++;
+
+                if (busesSeleccionadosPorTabla[1].has(b)) countB++;
+                if (busesSeleccionadosPorTabla[2].has(b)) countB++;
+                if (busesSeleccionadosPorTabla[3].has(b)) countB++;
+
+                // Mayor cantidad de tablas seleccionadas primero (3, luego 2, luego 1)
+                if (countA !== countB) return countB - countA;
+
+                if (priority) {
+                    const urgA = busesUrgentes.has(a) ? 1 : 0;
+                    const urgB = busesUrgentes.has(b) ? 1 : 0;
+                    if (urgA !== urgB) return urgB - urgA;
+                }
+
+                const occA = busOccurrenceCount.get(a) || 0;
+                const occB = busOccurrenceCount.get(b) || 0;
+                if (occA !== occB) return occB - occA;
+
+                const totalA = (lubCounts[a] || 0) + (engCounts[a] || 0) + (diagCounts[a] || 0);
+                const totalB = (lubCounts[b] || 0) + (engCounts[b] || 0) + (diagCounts[b] || 0);
+                if (totalA !== totalB) return totalB - totalA;
+
+                return a.localeCompare(b);
+            });
+
+            const newOrder = new Map(finalSortedRepeated.map((bus, i) => [bus, i]));
+            setRepeatedBuses(newRepeated);
+            setRepeatedBusOrder(newOrder);
+
+            // 6. Preparar datos finales con el orden correcto
+            const finalSortedLub = prepararDatosAlineados(currentLubData, finalSortedRepeated);
+            const finalSortedEng = prepararDatosAlineados(currentEngData, finalSortedRepeated);
+            const finalSortedDiag = prepararDatosAlineados(currentDiagData, finalSortedRepeated);
+
+            setLubricacionData(finalSortedLub);
+            setEngraseData(finalSortedEng);
+            setDiagnosticoData(finalSortedDiag);
+
+            // 7. Reconstruir la selección final adaptando los índices a las nuevas listas
+            const finalSelected = new Set<string>();
+            const reconstruirSeleccion = (lista: any[], tablaIdx: 1|2|3) => {
+                const setBuses = busesSeleccionadosPorTabla[tablaIdx];
+                lista.forEach((d, i) => {
+                    if (d.isPlaceholder || !setBuses.has(d.bus)) return;
+                    
+                    if (priority) {
+                        const est = d.estado?.toLowerCase() || '';
+                        const esVencida = est.includes('vencida');
+                        const esProxima = est.includes('proximo') || est.includes('proxima');
+                        
+                        let coincide = false;
+                        if (priority === 'vencidas' && esVencida) coincide = true;
+                        else if (priority === 'proximas' && esProxima) coincide = true;
+                        else if (priority === 'ambas' && (esVencida || esProxima)) coincide = true;
+                        
+                        if (!coincide) return;
+                    }
+                    finalSelected.add(`${tablaIdx}-${i}`);
+                });
+            };
+
+            reconstruirSeleccion(finalSortedLub, 1);
+            reconstruirSeleccion(finalSortedEng, 2);
+            reconstruirSeleccion(finalSortedDiag, 3);
             
             setIsExiting(false);
-            setSelectedRows(newSelected);
+            setSelectedRows(finalSelected);
             
             setIsExiting(true);
             setTimeout(() => {
@@ -548,8 +603,7 @@ export default function DashboardGrid() {
                 setIsExiting(false);
             }, 600);
 
-            // Notificar que se ha agrupado, enviando los datos ya procesados para el Excel
-            const busesOrdenados = [...newRepeated].sort((a, b) => {
+            const busesOrdenadosParaExcel = [...newRepeated].sort((a, b) => {
                 const aRank = newOrder.get(a);
                 const bRank = newOrder.get(b);
                 if (aRank !== undefined && bRank !== undefined) return aRank - bRank;
@@ -558,11 +612,11 @@ export default function DashboardGrid() {
 
             window.dispatchEvent(new CustomEvent('dashboard-grouped', {
                 detail: {
-                    lubricacion: sortedLub,
-                    engrase: sortedEng,
-                    diagnostico: sortedDiag,
-                    busesRepetidos: busesOrdenados,
-                    selectedRows: newSelected
+                    lubricacion: finalSortedLub,
+                    engrase: finalSortedEng,
+                    diagnostico: finalSortedDiag,
+                    busesRepetidos: busesOrdenadosParaExcel,
+                    selectedRows: finalSelected
                 }
             }));
         }, 800);

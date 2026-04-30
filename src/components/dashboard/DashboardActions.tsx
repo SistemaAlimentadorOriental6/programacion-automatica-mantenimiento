@@ -178,11 +178,40 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 tareasPorBusYTabla[item.bus][tIdx as 1 | 2 | 3].push(item);
             });
 
-            // Usar el orden de busesRepetidos para mantener el orden original
-            const busesOrdenados = busesRepetidos.filter(b => tareasPorBusYTabla[b]);
-            // Agregar buses seleccionados que no estén en repetidos (selección manual)
-            Object.keys(tareasPorBusYTabla).forEach(b => {
-                if (!busesOrdenados.includes(b)) busesOrdenados.push(b);
+            // Contar en cuántas tablas (1, 2, 3) tiene tareas el bus
+            const countTables = (bus: string) => {
+                const data = tareasPorBusYTabla[bus];
+                if (!data) return 0;
+                return (data[1].length > 0 ? 1 : 0) + 
+                       (data[2].length > 0 ? 1 : 0) + 
+                       (data[3].length > 0 ? 1 : 0);
+            };
+
+            // Contar el total de tareas seleccionadas de un bus
+            const countTotalTasks = (bus: string) => {
+                const data = tareasPorBusYTabla[bus];
+                if (!data) return 0;
+                return data[1].length + data[2].length + data[3].length;
+            };
+
+            // Ordenar buses: mayor cantidad de coincidencias (tablas) primero
+            const busesOrdenados = Object.keys(tareasPorBusYTabla).sort((a, b) => {
+                const countA = countTables(a);
+                const countB = countTables(b);
+                if (countA !== countB) {
+                    return countB - countA; // Descendente: 3 tablas, luego 2, luego 1
+                }
+                
+                // Si tienen la misma cantidad de tablas coincidentes,
+                // el desempate se basa en la cantidad total de tareas SELECCIONADAS
+                const totalA = countTotalTasks(a);
+                const totalB = countTotalTasks(b);
+                if (totalA !== totalB) {
+                    return totalB - totalA; // Descendente: más tareas seleccionadas primero
+                }
+                
+                // Desempate final alfabético
+                return a.localeCompare(b);
             });
 
             busesOrdenados.forEach(bus => {
