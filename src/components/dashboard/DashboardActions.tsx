@@ -483,7 +483,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 </div>
             )}
 
-            {!hasGrouped && (
+            {hasGrouped && (
                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50/50 rounded-2xl border border-gray-100/50 mr-2">
                     <div class="flex items-center gap-2 mr-2 border-r border-gray-200 pr-3">
                         <HugeiconsIcon icon={FilterIcon} size={14} className="text-texto-grey" />

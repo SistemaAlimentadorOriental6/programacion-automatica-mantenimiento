@@ -237,10 +237,13 @@ export default function DashboardGrid() {
     }
 
     const [lubricacionData, setLubricacionData] = useState<TareaData[]>([]);
+    const [rawLubricacionData, setRawLubricacionData] = useState<TareaData[]>([]);
     const [isLoadingLubricacion, setIsLoadingLubricacion] = useState(true);
     const [diagnosticoData, setDiagnosticoData] = useState<TareaData[]>([]);
+    const [rawDiagnosticoData, setRawDiagnosticoData] = useState<TareaData[]>([]);
     const [isLoadingDiagnostico, setIsLoadingDiagnostico] = useState(true);
     const [engraseData, setEngraseData] = useState<TareaData[]>([]);
+    const [rawEngraseData, setRawEngraseData] = useState<TareaData[]>([]);
     const [isLoadingEngrase, setIsLoadingEngrase] = useState(true);
 
     // Límites de selección por vehículo (no por tarea)
@@ -283,7 +286,7 @@ export default function DashboardGrid() {
             window.removeEventListener('dashboard-agrupar', handleAgruparEvent);
             window.removeEventListener('dashboard-vista-completa', handleVistaCompleta);
         };
-    }, [lubricacionData, engraseData, diagnosticoData]);
+    }, [lubricacionData, engraseData, diagnosticoData, rawLubricacionData, rawEngraseData, rawDiagnosticoData]);
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
@@ -314,9 +317,9 @@ export default function DashboardGrid() {
 
             const filterData = (data: TareaData[]) => (data || []).filter(d => isBusMatchFilter(d.bus));
 
-            const currentLubData = filterData(lubricacionData);
-            const currentEngData = filterData(engraseData);
-            const currentDiagData = filterData(diagnosticoData);
+            const currentLubData = filterData(rawLubricacionData);
+            const currentEngData = filterData(rawEngraseData);
+            const currentDiagData = filterData(rawDiagnosticoData);
 
             const busesLub = new Set(currentLubData.map(d => d.bus));
             const busesEng = new Set(currentEngData.map(d => d.bus));
@@ -638,6 +641,7 @@ export default function DashboardGrid() {
                 if (res.ok) {
                     const data = await res.json();
                     setLubricacionData(data || []);
+                    setRawLubricacionData(data || []);
                 }
             } catch (err) {
                 console.error("Error al cargar lubricación:", err);
@@ -654,6 +658,7 @@ export default function DashboardGrid() {
                 if (res.ok) {
                     const data = await res.json();
                     setDiagnosticoData(data || []);
+                    setRawDiagnosticoData(data || []);
                 }
             } catch (err) {
                 console.error("Error al cargar diagnóstico:", err);
@@ -670,6 +675,7 @@ export default function DashboardGrid() {
                 if (res.ok) {
                     const data = await res.json();
                     setEngraseData(data || []);
+                    setRawEngraseData(data || []);
                 }
             } catch (err) {
                 console.error("Error al cargar engrase:", err);
