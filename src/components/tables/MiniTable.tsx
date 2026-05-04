@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'preact/hooks';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { ArrowLeft01Icon, ArrowRight01Icon, Search01Icon } from '@hugeicons/core-free-icons';
 
 interface MiniTableProps {
     title: string;
@@ -12,7 +12,7 @@ interface MiniTableProps {
     tablaIndex?: number;
     isLoading?: boolean;
     groupedBuses?: Set<string>;
-    onRowClick?: (tablaIndex: number, filaIndex: number, toggleAll?: boolean) => void;
+    onRowClick?: (tablaIndex: number, filaIndex: number, toggleAll?: boolean, busName?: string) => void;
     onRowDoubleClick?: (tablaIndex: number, filaIndex: number) => void;
 }
 
@@ -31,8 +31,51 @@ export default function MiniTable({
 }: MiniTableProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-    const itemsPerPage = 10;
+    const [searchTerm, setSearchTerm] = useState("");
+    const itemsPerPage = 30;
     
+    const parseNum = (str: any) => {
+        if (!str) return 0;
+        const s = str.toString();
+        const match = s.match(/\(([\d,.]+)\)/) || s.match(/([\d,.]+)/);
+        return match ? parseFloat(match[1].replace(/,/g, '')) : 0;
+    };
+
+    const getSeverity = (item: any) => {
+        if (item.isPlaceholder) return -2000;
+        const f = parseNum(item.frecuencia_tarea_ultima);
+        const h = parseNum(item.dato_hoy);
+        if (f <= 0) return -1000;
+
+        const ratio = h / f;
+        const e = (item.estado || '').toLowerCase();
+        // Vencida: ratio > 1 (e.g. 1.2 para 20% exceso)
+        if (e.includes('vencida')) return ratio; 
+        // Próxima: ratio < 1 (e.g. 0.9 para 90% del límite, ratio-1 = -0.1)
+        if (e.includes('proximo') || e.includes('proxima')) return ratio - 1;
+        // En tiempo o normal
+        return -500;
+    };
+
+    const calculatePercentage = (frec: string | undefined, hoy: string | undefined, estado: string | undefined) => {
+        if (!frec || !hoy) return null;
+        const f = parseNum(frec);
+        const h = parseNum(hoy);
+        if (f <= 0) return null;
+
+        const ratio = h / f;
+        const e = (estado || '').toLowerCase();
+        const isVencida = e.includes('vencida');
+        const isProxima = e.includes('proximo') || e.includes('proxima');
+
+        if (isVencida) {
+            return { percent: `${((ratio - 1) * 100).toFixed(1)}%`, label: 'EXCESO', color: 'text-red-500' };
+        } else if (isProxima) {
+            return { percent: `${(ratio * 100).toFixed(1)}%`, label: 'AL', color: 'text-orange-500' };
+        }
+        return null;
+    };
+
     const getStatusStyle = (estado: string) => {
         const e = (estado || '').toLowerCase();
         if (e.includes('vencida')) return 'bg-red-50 text-red-600 border-red-100';
@@ -54,22 +97,86 @@ export default function MiniTable({
         });
     };
 
-    // Construir la lista de filas colapsadas para la paginación cuando grupos activos
-    const collapsedData = useMemo(() => {
-        if (!isGroupActive) return data;
-        const seen = new Set<string>();
-        return data.filter(item => {
-            if (groupedBuses!.has(item.bus)) {
-                if (seen.has(item.bus)) return false;
-                seen.add(item.bus);
-                return true;
+    // Ordenar los datos por severidad antes de procesar agrupamiento o paginación
+    const sortedData = useMemo(() => {
+        if (!data || data.length === 0) return data;
+
+        let currentData = data;
+        if (searchTerm.trim()) {
+            const lower = searchTerm.toLowerCase().trim();
+            currentData = data.filter(d => 
+                d.bus.toLowerCase().includes(lower) || 
+                (d.tarea && d.tarea.toLowerCase().includes(lower))
+            );
+        }
+
+        // Si hay grupos activos, mantenemos el orden de los buses del padre para la alineación
+        if (isGroupActive) {
+            const busGroups = new Map<string, any[]>();
+            const busOrder: string[] = [];
+            
+            currentData.forEach(item => {
+                if (!busGroups.has(item.bus)) {
+                    busGroups.set(item.bus, []);
+                    busOrder.push(item.bus);
+                }
+                if (!item.isPlaceholder) {
+                    busGroups.get(item.bus)!.push(item);
+                }
+            });
+
+            const result: typeof data = [];
+            busOrder.forEach(bus => {
+                const tasks = busGroups.get(bus)!;
+                if (tasks.length > 0) {
+                    // Ordenamos las tareas dentro de cada bus por su severidad
+                    tasks.sort((a, b) => getSeverity(b) - getSeverity(a));
+                    result.push(...tasks);
+                } else {
+                    // Si es un placeholder, lo mantenemos tal cual para preservar la alineación
+                    result.push({ bus, isPlaceholder: true });
+                }
+            });
+            return result;
+        }
+
+        // Sin agrupación: ordenar por severidad y luego elevar seleccionados al tope
+        const porSeveridad = [...currentData].sort((a, b) => {
+            const sA = getSeverity(a);
+            const sB = getSeverity(b);
+            if (sA !== sB) return sB - sA;
+            return a.bus.localeCompare(b.bus);
+        });
+
+        const selBuses = new Set<string>();
+        selectedRows?.forEach(key => {
+            const [tIdx, fIdx] = key.split('-').map(Number);
+            if (tIdx === tablaIndex && data[fIdx] && !data[fIdx].isPlaceholder) {
+                selBuses.add(data[fIdx].bus);
             }
+        });
+
+        return [
+            ...porSeveridad.filter(d => selBuses.has(d.bus)),
+            ...porSeveridad.filter(d => !selBuses.has(d.bus)),
+        ];
+    }, [data, isGroupActive, selectedRows, tablaIndex, searchTerm]);
+
+    // Construir la lista de filas colapsadas para la paginación cuando grupos activos
+    // IMPORTANTE: cuando isGroupActive, el padre (DashboardGrid) ya trae el orden correcto
+    // por grupos de presencia. Solo deduplicamos sin reordenar para mantener la alineación.
+    const collapsedData = useMemo(() => {
+        if (!isGroupActive) return sortedData;
+        const seen = new Set<string>();
+        return sortedData.filter(item => {
+            if (seen.has(item.bus)) return false;
+            seen.add(item.bus);
             return true;
         });
-    }, [data, groupedBuses, isGroupActive]);
+    }, [sortedData, isGroupActive]);
 
     // Lógica de paginación (sobre datos colapsados cuando aplique)
-    const baseData = isGroupActive ? collapsedData : data;
+    const baseData = isGroupActive ? collapsedData : sortedData;
     const totalPages = Math.ceil(baseData.length / itemsPerPage);
     const paginatedBase = useMemo(() => {
         const start = (currentPage - 1) * itemsPerPage;
@@ -80,24 +187,28 @@ export default function MiniTable({
     const viewRows = useMemo(() => {
         type Row = { kind: 'single' | 'group-header' | 'group-row'; item: typeof data[0]; realIndex: number; isExpanded?: boolean; groupCount?: number };
         const rows: Row[] = [];
-        let offset = (currentPage - 1) * itemsPerPage;
 
-        paginatedBase.forEach((item, i) => {
-            const realIndex = data.indexOf(item); // índice en data completo (para selectedRows)
-            if (isGroupActive && groupedBuses!.has(item.bus)) {
+        paginatedBase.forEach((item) => {
+            // Calcular el índice en data (displayData de DashboardGrid)
+            let realIndex: number;
+            if (item.isPlaceholder) {
+                // Placeholder: buscar por nombre de bus, necesitamos el índice del primer item de ese bus
+                const firstOfBus = data.findIndex(d => d.bus === item.bus && !d.isPlaceholder);
+                realIndex = firstOfBus >= 0 ? firstOfBus : 0;
+            } else {
+                realIndex = data.indexOf(item);
+            }
+            
+            if (isGroupActive) {
                 const isExpanded = expandedGroups.has(item.bus);
-                const groupItems = data.filter(d => d.bus === item.bus);
-                // El contenido expandido se renderiza dentro de renderGroupHeader, no aquí
-                // Un bus se considera seleccionado si TIENE AL MENOS UNA tarea seleccionada
-                const groupKeys = groupItems.map((_, i) => `${tablaIndex}-${data.findIndex(d => d.bus === item.bus) + i}`);
-                const sel = groupKeys.some(k => selectedRows?.has(k));
-                rows.push({ kind: 'group-header', item, realIndex: data.findIndex(d => d.bus === item.bus), isExpanded, groupCount: groupItems.length });
+                const groupItems = sortedData.filter(d => d.bus === item.bus);
+                rows.push({ kind: 'group-header', item, realIndex, isExpanded, groupCount: groupItems.length });
             } else {
                 rows.push({ kind: 'single', item, realIndex });
             }
         });
         return rows;
-    }, [paginatedBase, expandedGroups, isGroupActive, groupedBuses, data, currentPage]);
+    }, [paginatedBase, expandedGroups, isGroupActive, data, sortedData, tablaIndex]);
 
     // Ajustamos las columnas del grid: Bus fijo | Tarea flexible con truncado | Total fijo
     const gridColsHeader = showCantidad ? 'grid-cols-[75px_minmax(0,1fr)_50px]' : 'grid-cols-[75px_minmax(0,1fr)]';
@@ -120,10 +231,9 @@ export default function MiniTable({
 
     const renderGroupHeader = (row: ReturnType<typeof viewRows>[0]) => {
         const { item, realIndex, isExpanded, groupCount } = row;
-        const groupItems = data.filter(d => d.bus === item.bus);
-        const isAnySelected = groupItems.some((_, gi_i) => {
-            const firstIdxOfBus = data.findIndex(d => d.bus === item.bus);
-            return selectedRows?.has(`${tablaIndex}-${firstIdxOfBus + gi_i}`);
+        const groupItems = sortedData.filter(d => d.bus === item.bus);
+        const isAnySelected = groupItems.some((gi) => {
+            return selectedRows?.has(`${tablaIndex}-${data.indexOf(gi)}`);
         });
         const sel = isAnySelected;
 
@@ -134,7 +244,7 @@ export default function MiniTable({
                     class={`grid grid-cols-[32px_1fr_28px] gap-x-2 items-center px-3 py-3.5 cursor-pointer transition-all duration-200 select-none ${
                         sel ? 'bg-primary/[0.09]' : 'bg-primary/[0.04] hover:bg-primary/[0.07]'
                     }`}
-                    onClick={() => onRowClick?.(tablaIndex, realIndex, true)}
+                    onClick={() => onRowClick?.(tablaIndex, realIndex, true, item.bus)}
                 >
                     {/* Check circular */}
                     <div class={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
@@ -162,13 +272,8 @@ export default function MiniTable({
                         {showCantidad && (
                             <div class="flex justify-end pr-1 flex-shrink-0">
                                 {(() => {
-                                    const selectedCount = groupItems.filter((gi, gi_i) => {
-                                        const giRealIndex = data.findIndex((d, di) => {
-                                            let count = 0;
-                                            for (let k = 0; k <= di; k++) if (data[k].bus === gi.bus) count++;
-                                            return d.bus === gi.bus && count === gi_i + 1;
-                                        });
-                                        return selectedRows?.has(`${tablaIndex}-${giRealIndex}`);
+                                    const selectedCount = groupItems.filter((gi) => {
+                                        return selectedRows?.has(`${tablaIndex}-${data.indexOf(gi)}`);
                                     }).length;
                                     
                                     return (
@@ -201,11 +306,7 @@ export default function MiniTable({
                 {isExpanded && (
                     <div class="border-t border-primary/10 bg-white px-3 py-2 flex flex-col gap-0.5 animate-group-expand">
                         {groupItems.map((gi, gi_i) => {
-                            const giRealIndex = data.findIndex((d, di) => {
-                                let count = 0;
-                                for (let k = 0; k <= di; k++) if (data[k].bus === gi.bus) count++;
-                                return d.bus === gi.bus && count === gi_i + 1;
-                            });
+                            const giRealIndex = data.indexOf(gi);
                             const giSel = selectedRows?.has(`${tablaIndex}-${giRealIndex}`) ?? false;
                             return (
                                 <div
@@ -228,9 +329,20 @@ export default function MiniTable({
                                             )}
                                         </div>
                                         {gi.frecuencia_tarea_ultima && (
-                                            <span class="text-[9px] text-texto-grey/50 font-bold">
-                                                Frec: {gi.frecuencia_tarea_ultima} {gi.dato_hoy ? `| Hoy: ${gi.dato_hoy}` : ''}
-                                            </span>
+                                            <div class="flex items-center gap-1.5 overflow-hidden">
+                                                <span class="text-[9px] text-texto-grey/50 font-bold whitespace-nowrap">
+                                                    Frec: {gi.frecuencia_tarea_ultima} {gi.dato_hoy ? `| Hoy: ${gi.dato_hoy}` : ''}
+                                                </span>
+                                                {(() => {
+                                                    const p = calculatePercentage(gi.frecuencia_tarea_ultima, gi.dato_hoy, gi.estado);
+                                                    if (!p) return null;
+                                                    return (
+                                                        <span class={`text-[9px] font-black uppercase tracking-tighter ${p.color} bg-current/10 px-1 rounded-sm`}>
+                                                            {p.label} {p.percent}
+                                                        </span>
+                                                    );
+                                                })()}
+                                            </div>
                                         )}
                                     </div>
                                     {gi.cantidad !== undefined && (
@@ -291,9 +403,20 @@ export default function MiniTable({
                             )}
                         </div>
                         {item.frecuencia_tarea_ultima && (
-                            <span class="text-[9px] text-texto-grey/50 font-bold">
-                                Frec: {item.frecuencia_tarea_ultima} {item.dato_hoy ? `| Hoy: ${item.dato_hoy}` : ''}
-                            </span>
+                            <div class="flex items-center gap-1.5 overflow-hidden">
+                                <span class="text-[9px] text-texto-grey/50 font-bold whitespace-nowrap">
+                                    Frec: {item.frecuencia_tarea_ultima} {item.dato_hoy ? `| Hoy: ${item.dato_hoy}` : ''}
+                                </span>
+                                {(() => {
+                                    const p = calculatePercentage(item.frecuencia_tarea_ultima, item.dato_hoy, item.estado);
+                                    if (!p) return null;
+                                    return (
+                                        <span class={`text-[9px] font-black uppercase tracking-tighter ${p.color} bg-current/10 px-1 rounded-sm`}>
+                                            {p.label} {p.percent}
+                                        </span>
+                                    );
+                                })()}
+                            </div>
                         )}
                     </div>
                     {showCantidad && (
@@ -313,22 +436,21 @@ export default function MiniTable({
     const renderPlaceholderRow = (bus: string) => {
         return (
             <div
-                class="grid grid-cols-[32px_1fr] gap-x-2 items-center rounded-2xl px-3 py-3 select-none opacity-40 border border-dashed border-gray-200 bg-gray-50/50"
+                class="grid grid-cols-[32px_1fr] gap-x-2 items-center rounded-2xl px-3 py-3 select-none opacity-30 border border-dashed border-gray-200 bg-gray-50/30"
                 style="height: 52px"
             >
-                <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
-                    <span class="text-[9px] font-black">N/A</span>
+                <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-300">
+                    <span class="text-[8px] font-black">—</span>
                 </div>
                 <div class={`grid ${gridColsRow} gap-2 items-center`}>
                     <div class="min-w-0 overflow-hidden">
-                        <span class="block truncate text-[13px] font-extrabold text-gray-400">
+                        <span class="block truncate text-[12px] font-extrabold text-gray-300">
                             {bus}
                         </span>
                     </div>
                     <div class="min-w-0 overflow-hidden flex items-center gap-2">
-                        <span class="text-[11px] font-bold text-gray-300 uppercase tracking-widest">Sin Tareas</span>
-                        <div class="flex-1 h-[1.5px] bg-gray-100 rounded-full"></div>
-                        <span class="text-[11px] font-bold text-gray-300">---</span>
+                        <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">Vacío</span>
+                        <div class="flex-1 h-[1px] bg-gray-100 rounded-full"></div>
                     </div>
                 </div>
             </div>
@@ -352,6 +474,25 @@ export default function MiniTable({
                         <span class="text-[10px] font-extrabold text-primary uppercase tracking-widest">Agrupado</span>
                     </div>
                 )}
+            </div>
+
+            {/* Buscador */}
+            <div class="px-5 py-3 border-b border-gray-50 bg-gray-50/30">
+                <div class="relative flex items-center">
+                    <div class="absolute left-3 text-gray-400">
+                        <HugeiconsIcon icon={Search01Icon} size={14} />
+                    </div>
+                    <input 
+                        type="text" 
+                        placeholder="Buscar bus o tarea..." 
+                        value={searchTerm}
+                        onInput={(e) => {
+                            setSearchTerm((e.target as HTMLInputElement).value);
+                            setCurrentPage(1);
+                        }}
+                        class="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all shadow-sm"
+                    />
+                </div>
             </div>
 
             {/* Tabla Dinámica */}

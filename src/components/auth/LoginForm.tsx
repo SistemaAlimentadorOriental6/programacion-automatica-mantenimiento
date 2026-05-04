@@ -80,7 +80,7 @@ export default function LoginForm() {
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
-                        placeholder="Tu número de NIT"
+                        placeholder="Tu contraseña"
                         required
                         class="w-full pl-11 pr-12 py-4 rounded-soft border border-gray-200 bg-fondo-soft/50 text-texto-dark placeholder-texto-grey/60 font-medium transition-all duration-300 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 focus:bg-white"
                     />
