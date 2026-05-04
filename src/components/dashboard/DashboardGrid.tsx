@@ -384,141 +384,156 @@ export default function DashboardGrid() {
             buscarUrgencia(currentEngData);
             buscarUrgencia(currentDiagData);
 
-            // 2. Determinar buses que deben alinearse arriba (Repetidos o Seleccionados)
+            // 2. Determinar todos los buses para habilitar el agrupamiento en MiniTable
             const allBuses = new Set([...busesLub, ...busesEng, ...busesDiag]);
-            const newRepeated = new Set<string>();
-            const busOccurrenceCount = new Map<string, number>();
+            setRepeatedBuses(allBuses);
 
-            allBuses.forEach(bus => {
-                let count = 0;
-                if (busesLub.has(bus)) count++;
-                if (busesEng.has(bus)) count++;
-                if (busesDiag.has(bus)) count++;
-                busOccurrenceCount.set(bus, count);
-                
-                // Se alinean arriba si se repiten O si el usuario ya los marcó
-                if (count >= 2 || tablesCheckedForBus.has(bus)) {
-                    newRepeated.add(bus);
-                }
-            });
+            // 3. SELECCIÓN AUTOMÁTICA
+            const tempSelected = new Set<string>();
+            const busesSeleccionadosPorTabla: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set() };
 
-            // Clasificación de buses por presencia en tablas para el ordenamiento visual:
-            // Grupo 0: Lub + Eng + Diag (las 3) → máxima prioridad
-            // Grupo 1: Lub + Eng (2 izquierdas)
-            // Grupo 2: Eng + Diag (2 derechas)
-            // Grupo 3: Lub + Diag (extremos)
-            // Grupo 4: solo en 1 tabla (sueltos, no entran en newRepeated)
-            const getGrupoPresencia = (bus: string): number => {
-                const enLub  = busesLub.has(bus);
-                const enEng  = busesEng.has(bus);
-                const enDiag = busesDiag.has(bus);
-                if (enLub && enEng && enDiag) return 0;
-                if (enLub && enEng)           return 1;
-                if (enEng && enDiag)          return 2;
-                if (enLub && enDiag)          return 3;
-                return 4;
+            const CUOTAS = {
+                1: 12,  // Lubricación (antes 10+2)
+                2: 15,  // Engrase (antes 10+5, aunque ya no auto-selecciona)
+                3: 30,  // Diagnóstico (antes 22+8)
             };
 
-            // 3. Primer Ordenamiento (Ideal/Inicial)
-            const initialSortedRepeated = [...newRepeated].sort((a, b) => {
-                // 1. PRIORIDAD MÁXIMA: grupo de presencia en tablas
-                const grupoA = getGrupoPresencia(a);
-                const grupoB = getGrupoPresencia(b);
-                if (grupoA !== grupoB) return grupoA - grupoB;
+            const tareaCoincide = (d: any): boolean => {
+                if (!d.estado) return false;
+                const est = d.estado.toLowerCase();
+                const esVencida = est.includes('vencida');
+                const esProxima = est.includes('proximo') || est.includes('proxima');
+                if (priority === 'vencidas') return esVencida;
+                if (priority === 'proximas') return esProxima;
+                if (priority === 'ambas') return esVencida || esProxima;
+                return esVencida || esProxima;
+            };
 
-                // 2. Dentro del mismo grupo: urgencia (vencidas/próximas)
-                const urgA = busesUrgentes.has(a) ? 1 : 0;
-                const urgB = busesUrgentes.has(b) ? 1 : 0;
-                if (urgA !== urgB) return urgB - urgA;
+            const seleccionarPorCategoria = (lista: any[], tablaIdx: 1|2|3) => {
+                const cuotaTotal = CUOTAS[tablaIdx];
+                const busTareas = new Map<string, { indices: number[]; scoreMax: number; cantidadTareas: number }>();
+                
+                lista.forEach((d, i) => {
+                    if (d.isPlaceholder || !tareaCoincide(d)) return;
 
-                // 3. Desempate por score de urgencia (Hoy / Frecuencia)
-                const scoreA = busUrgencyScore.get(a) || 0;
-                const scoreB = busUrgencyScore.get(b) || 0;
-                if (scoreA !== scoreB) return scoreB - scoreA;
+                    const freq = parseNumber(d.frecuencia_tarea_ultima);
+                    const hoy  = parseNumber(d.dato_hoy);
+                    const score = freq > 0 ? hoy / freq : 0;
 
-                // 4. Desempate por total de tareas
-                const totalA = (lubCounts[a] || 0) + (engCounts[a] || 0) + (diagCounts[a] || 0);
-                const totalB = (lubCounts[b] || 0) + (engCounts[b] || 0) + (diagCounts[b] || 0);
-                if (totalA !== totalB) return totalB - totalA;
+                    if (!busTareas.has(d.bus)) {
+                        busTareas.set(d.bus, { indices: [], scoreMax: 0, cantidadTareas: 0 });
+                    }
+                    const entrada = busTareas.get(d.bus)!;
+                    entrada.indices.push(i);
+                    entrada.cantidadTareas++;
+                    if (score > entrada.scoreMax) entrada.scoreMax = score;
+                });
 
-                return a.localeCompare(b);
-            });
+                const todosLosBuses: [string, { indices: number[]; scoreMax: number; cantidadTareas: number }][] = [];
+                busTareas.forEach((entrada, bus) => {
+                    todosLosBuses.push([bus, entrada]);
+                });
 
-            // Función para ordenar y RELLENAR con espacios en blanco (alineación)
-            const prepararDatosAlineados = (
-                sourceData: { bus: string; tarea: string; [key: string]: any }[],
-                customSortedRepeated: string[],
-                tablaSeleccionados: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set() }
+                const sortPorCantidad = (a: typeof todosLosBuses[0], b: typeof todosLosBuses[0]) => {
+                    if (b[1].cantidadTareas !== a[1].cantidadTareas) return b[1].cantidadTareas - a[1].cantidadTareas;
+                    return b[1].scoreMax - a[1].scoreMax;
+                };
+
+                const sortPorUrgencia = (a: typeof todosLosBuses[0], b: typeof todosLosBuses[0]) => {
+                    if (b[1].scoreMax !== a[1].scoreMax) return b[1].scoreMax - a[1].scoreMax;
+                    return b[1].cantidadTareas - a[1].cantidadTareas;
+                };
+
+                if (tablaIdx === 3) {
+                    todosLosBuses.sort(sortPorUrgencia);
+                } else {
+                    todosLosBuses.sort(sortPorCantidad);
+                }
+
+                const setBuses = busesSeleccionadosPorTabla[tablaIdx];
+                const marcarBus = (bus: string, entrada: { indices: number[]; scoreMax: number }) => {
+                    setBuses.add(bus);
+                    entrada.indices.forEach(i => tempSelected.add(`${tablaIdx}-${i}`));
+                };
+
+                // Tomar exactamente los primeros buses hasta llenar la cuota total
+                const seleccionados = todosLosBuses.slice(0, cuotaTotal);
+                seleccionados.forEach(([bus, entrada]) => marcarBus(bus, entrada));
+            };
+
+            // Ejecutar selección en Lubricación y Diagnóstico sobre los datos limpios
+            seleccionarPorCategoria(currentLubData, 1);
+            seleccionarPorCategoria(currentDiagData, 3);
+
+            // 4. ORDENAR CADA TABLA DE MANERA INDEPENDIENTE
+            const ordenarTablaIndependiente = (
+                sourceData: any[],
+                tablaIdx: 1|2|3,
+                criterioOrden: 'vencidas' | 'cantidad' = 'cantidad'
             ) => {
-                // LIMPIEZA PROFUNDA: Filtramos cualquier placeholder previo Y tareas que sean "basura" (vacías, puntos, guiones)
                 const rawData = sourceData.filter(d => {
-                    if (d.isPlaceholder) return false;
                     if (!d.tarea) return false;
                     const cleanTarea = d.tarea.trim();
-                    // Filtramos tareas que sean solo un punto, un guion o que estén vacías
                     return cleanTarea.length > 0 && cleanTarea !== '.' && cleanTarea !== '-' && cleanTarea !== '...';
                 });
 
-                // 1. Conteo TOTAL por bus (para prioridad/orden y cabecera)
-                const busTotals = new Map<string, number>();
-                rawData.forEach(d => busTotals.set(d.bus, (busTotals.get(d.bus) || 0) + 1));
+                const statsPorBus = new Map<string, { total: number, urgencia: number, cantidadFiltro: number }>();
+                rawData.forEach(d => {
+                    const bus = d.bus;
+                    if (!statsPorBus.has(bus)) statsPorBus.set(bus, { total: 0, urgencia: 0, cantidadFiltro: 0 });
+                    const st = statsPorBus.get(bus)!;
+                    st.total++;
+                    
+                    const f = parseNumber(d.frecuencia_tarea_ultima);
+                    const h = parseNumber(d.dato_hoy);
+                    const s = f > 0 ? h / f : 0;
+                    if (s > st.urgencia) st.urgencia = s;
 
-                // 2. Conteo ESPECIFICO por tarea
+                    if (tareaCoincide(d)) st.cantidadFiltro++;
+                });
+
+                const setSeleccionados = busesSeleccionadosPorTabla[tablaIdx];
+                const uniqueBuses = [...new Set(rawData.map(d => d.bus))];
+
+                uniqueBuses.sort((a, b) => {
+                    // SELECCIONADOS SIEMPRE PRIMERO EN SU TABLA
+                    const selA = setSeleccionados.has(a);
+                    const selB = setSeleccionados.has(b);
+                    if (selA !== selB) return selA ? -1 : 1;
+
+                    const stA = statsPorBus.get(a)!;
+                    const stB = statsPorBus.get(b)!;
+
+                    if (criterioOrden === 'cantidad') {
+                        if (stA.cantidadFiltro !== stB.cantidadFiltro) return stB.cantidadFiltro - stA.cantidadFiltro;
+                        return stB.urgencia - stA.urgencia;
+                    } else { 
+                        if (stA.urgencia !== stB.urgencia) return stB.urgencia - stA.urgencia;
+                        return stB.cantidadFiltro - stA.cantidadFiltro;
+                    }
+                });
+
+                const resultado: any[] = [];
                 const taskCounts = new Map<string, number>();
                 rawData.forEach(d => {
                     const key = `${d.bus}-${d.tarea}`;
                     taskCounts.set(key, (taskCounts.get(key) || 0) + 1);
                 });
 
-                const resultado: any[] = [];
+                uniqueBuses.forEach(bus => {
+                    const tareas = rawData.filter(d => d.bus === bus).sort((a, b) => {
+                        const sA = parseNumber(a.dato_hoy) / (parseNumber(a.frecuencia_tarea_ultima) || 1);
+                        const sB = parseNumber(b.dato_hoy) / (parseNumber(b.frecuencia_tarea_ultima) || 1);
+                        return sB - sA;
+                    });
 
-                // 3. Zona Agrupada: Buses detectados en 2 o más tablas
-                customSortedRepeated.forEach(bus => {
-                    const tasks = rawData.filter(d => d.bus === bus);
-                    if (tasks.length > 0) {
-                        tasks.forEach(t => {
-                            resultado.push({
-                                bus: t.bus,
-                                tarea: t.tarea,
-                                estado: t.estado,
-                                cantidad: taskCounts.get(`${bus}-${t.tarea}`) || 1,
-                                busTotal: busTotals.get(bus) || 0,
-                                tarea_abierta_posterior: t.tarea_abierta_posterior,
-                                frecuencia_tarea_ultima: t.frecuencia_tarea_ultima,
-                                dato_hoy: t.dato_hoy
-                            });
-                        });
-                    } else {
-                        resultado.push({ bus, isPlaceholder: true });
-                    }
-                });
-
-                // 4. Zona Normal: Resto de buses (sólo en 1 tabla), seleccionados primero
-                const others = rawData.filter(d => !newRepeated.has(d.bus));
-                const otherBuses = [...new Set(others.map(d => d.bus))].sort((a, b) => {
-                    // Seleccionados en cualquier tabla primero
-                    const isSelA = [1, 2, 3].some(t => tablaSeleccionados[t].has(a));
-                    const isSelB = [1, 2, 3].some(t => tablaSeleccionados[t].has(b));
-                    if (isSelA !== isSelB) return isSelA ? -1 : 1;
-
-                    if (priority) {
-                        const urgA = busesUrgentes.has(a) ? 1 : 0;
-                        const urgB = busesUrgentes.has(b) ? 1 : 0;
-                        if (urgA !== urgB) return urgB - urgA;
-                    }
-                    const tA = busTotals.get(a) || 0;
-                    const tB = busTotals.get(b) || 0;
-                    return tA !== tB ? tB - tA : a.localeCompare(b);
-                });
-
-                otherBuses.forEach(bus => {
-                    rawData.filter(d => d.bus === bus).forEach(t => {
+                    tareas.forEach(t => {
                         resultado.push({
                             bus: t.bus,
                             tarea: t.tarea,
                             estado: t.estado,
                             cantidad: taskCounts.get(`${bus}-${t.tarea}`) || 1,
-                            busTotal: busTotals.get(bus) || 0,
+                            busTotal: statsPorBus.get(bus)!.total,
                             tarea_abierta_posterior: t.tarea_abierta_posterior,
                             frecuencia_tarea_ultima: t.frecuencia_tarea_ultima,
                             dato_hoy: t.dato_hoy
@@ -529,142 +544,9 @@ export default function DashboardGrid() {
                 return resultado;
             };
 
-            const tempSortedLub = prepararDatosAlineados(currentLubData, initialSortedRepeated);
-            const tempSortedEng = prepararDatosAlineados(currentEngData, initialSortedRepeated);
-            const tempSortedDiag = prepararDatosAlineados(currentDiagData, initialSortedRepeated);
-
-            const tempSelected = new Set<string>();
-            const busesSeleccionadosPorTabla: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set() };
-
-            // Cuotas específicas por categoría
-            // Cuota A: buses con ≥2 tareas coincidentes (multitarea)
-            // Cuota B: buses con 1 sola tarea coincidente (unitarea), los de mayor score
-            const CUOTAS = {
-                1: { multitarea: 10, unitarea: 2 },  // Lubricación
-                2: { multitarea: 10, unitarea: 5 },  // Engrase
-                3: { multitarea: 22, unitarea: 8 },  // Diagnóstico
-            };
-
-            // Verifica si una tarea coincide con el filtro de prioridad seleccionado
-            const tareaCoincide = (d: any): boolean => {
-                if (!d.estado) return false;
-                const est = d.estado.toLowerCase();
-                const esVencida = est.includes('vencida');
-                const esProxima = est.includes('proximo') || est.includes('proxima');
-                if (priority === 'vencidas') return esVencida;
-                if (priority === 'proximas') return esProxima;
-                if (priority === 'ambas') return esVencida || esProxima;
-                // Sin filtro específico: acepta vencidas o próximas
-                return esVencida || esProxima;
-            };
-
-            const seleccionarPorCategoria = (lista: any[], tablaIdx: 1|2|3) => {
-                const cuota = CUOTAS[tablaIdx];
-
-                // 1. Agrupar índices y calcular scoreMax por bus, solo tareas que coincidan con el filtro
-                const busTareas = new Map<string, { indices: number[]; scoreMax: number }>();
-                lista.forEach((d, i) => {
-                    if (d.isPlaceholder || !tareaCoincide(d)) return;
-
-                    const freq = parseNumber(d.frecuencia_tarea_ultima);
-                    const hoy = parseNumber(d.dato_hoy);
-                    const score = freq > 0 ? hoy / freq : 0;
-
-                    if (!busTareas.has(d.bus)) {
-                        busTareas.set(d.bus, { indices: [], scoreMax: 0 });
-                    }
-                    const entrada = busTareas.get(d.bus)!;
-                    entrada.indices.push(i);
-                    if (score > entrada.scoreMax) entrada.scoreMax = score;
-                });
-
-                // 2. Clasificar buses: multitarea (≥2 tareas coincidentes) vs unitarea (1 tarea)
-                const multitarea: [string, { indices: number[]; scoreMax: number }][] = [];
-                const unitarea:   [string, { indices: number[]; scoreMax: number }][] = [];
-
-                busTareas.forEach((entrada, bus) => {
-                    if (entrada.indices.length >= 2) {
-                        multitarea.push([bus, entrada]);
-                    } else {
-                        unitarea.push([bus, entrada]);
-                    }
-                });
-
-                // 3. Ordenar cada grupo por scoreMax de mayor a menor (más urgente primero)
-                multitarea.sort((a, b) => b[1].scoreMax - a[1].scoreMax);
-                unitarea.sort((a, b) => b[1].scoreMax - a[1].scoreMax);
-
-                // 4. Selección con SPILLOVER: si un grupo no llena su cuota,
-                //    los slots sobrantes se transfieren al otro grupo para llegar al total completo.
-                const setBuses = busesSeleccionadosPorTabla[tablaIdx];
-                const marcarBus = (bus: string, entrada: { indices: number[]; scoreMax: number }) => {
-                    setBuses.add(bus);
-                    entrada.indices.forEach(i => tempSelected.add(`${tablaIdx}-${i}`));
-                };
-
-                // Paso 1: tomar cuota base de multitarea
-                const selMulti = multitarea.slice(0, cuota.multitarea);
-                const slotsLibresMulti = cuota.multitarea - selMulti.length;
-
-                // Paso 2: tomar cuota base de unitarea + slots sobrantes de multitarea
-                const selUni = unitarea.slice(0, cuota.unitarea + slotsLibresMulti);
-                const slotsLibresUni = (cuota.unitarea + slotsLibresMulti) - selUni.length;
-
-                // Paso 3: si unitarea tampoco llenó, tomar más de multitarea
-                const selMultiFinal = slotsLibresUni > 0
-                    ? multitarea.slice(0, cuota.multitarea + slotsLibresUni)
-                    : selMulti;
-
-                selMultiFinal.forEach(([bus, entrada]) => marcarBus(bus, entrada));
-                selUni.forEach(([bus, entrada]) => { if (!setBuses.has(bus)) marcarBus(bus, entrada); });
-            };
-
-            seleccionarPorCategoria(tempSortedLub, 1);
-            seleccionarPorCategoria(tempSortedEng, 2);
-            seleccionarPorCategoria(tempSortedDiag, 3);
-            
-            // 5. SEGUNDO ORDENAMIENTO (Definitivo)
-            // getGrupoSeleccion clasifica por SELECCION real, no por presencia de datos.
-            const getGrupoSeleccion = (bus: string): number => {
-                const selLub  = busesSeleccionadosPorTabla[1].has(bus);
-                const selEng  = busesSeleccionadosPorTabla[2].has(bus);
-                const selDiag = busesSeleccionadosPorTabla[3].has(bus);
-                if (selLub && selEng && selDiag) return 0;
-                if (selLub && selEng)            return 1;
-                if (selEng && selDiag)           return 2;
-                if (selLub && selDiag)           return 3;
-                if (selLub || selEng || selDiag) return 4;
-                return 5;
-            };
-
-            const finalSortedRepeated = [...newRepeated].sort((a, b) => {
-                const grupoA = getGrupoSeleccion(a);
-                const grupoB = getGrupoSeleccion(b);
-                if (grupoA !== grupoB) return grupoA - grupoB;
-
-                const urgA = busesUrgentes.has(a) ? 1 : 0;
-                const urgB = busesUrgentes.has(b) ? 1 : 0;
-                if (urgA !== urgB) return urgB - urgA;
-
-                const scoreA = busUrgencyScore.get(a) || 0;
-                const scoreB = busUrgencyScore.get(b) || 0;
-                if (scoreA !== scoreB) return scoreB - scoreA;
-
-                const totalA = (lubCounts[a] || 0) + (engCounts[a] || 0) + (diagCounts[a] || 0);
-                const totalB = (lubCounts[b] || 0) + (engCounts[b] || 0) + (diagCounts[b] || 0);
-                if (totalA !== totalB) return totalB - totalA;
-
-                return a.localeCompare(b);
-            });
-
-            const newOrder = new Map(finalSortedRepeated.map((bus, i) => [bus, i]));
-            setRepeatedBuses(newRepeated);
-            setRepeatedBusOrder(newOrder);
-
-            // 6. Preparar datos finales con el orden correcto
-            const finalSortedLub  = prepararDatosAlineados(currentLubData,  finalSortedRepeated, busesSeleccionadosPorTabla);
-            const finalSortedEng  = prepararDatosAlineados(currentEngData,  finalSortedRepeated, busesSeleccionadosPorTabla);
-            const finalSortedDiag = prepararDatosAlineados(currentDiagData, finalSortedRepeated, busesSeleccionadosPorTabla);
+            const finalSortedLub  = ordenarTablaIndependiente(currentLubData, 1, 'cantidad');
+            const finalSortedEng  = ordenarTablaIndependiente(currentEngData, 2, 'vencidas');
+            const finalSortedDiag = ordenarTablaIndependiente(currentDiagData, 3, 'vencidas');
 
             setLubricacionData(finalSortedLub);
             setEngraseData(finalSortedEng);
