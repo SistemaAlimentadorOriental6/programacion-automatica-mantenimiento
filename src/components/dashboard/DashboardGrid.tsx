@@ -588,12 +588,7 @@ export default function DashboardGrid() {
                 setIsExiting(false);
             }, 600);
 
-            const busesOrdenadosParaExcel = [...newRepeated].sort((a, b) => {
-                const aRank = newOrder.get(a);
-                const bRank = newOrder.get(b);
-                if (aRank !== undefined && bRank !== undefined) return aRank - bRank;
-                return a.localeCompare(b);
-            });
+            const busesOrdenadosParaExcel = [...allBuses].sort((a, b) => a.localeCompare(b));
 
             window.dispatchEvent(new CustomEvent('dashboard-grouped', {
                 detail: {
