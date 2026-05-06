@@ -7,6 +7,7 @@ type ReporteTarea struct {
 	TareaAbiertaPosterior string `json:"tarea_abierta_posterior"`
 	FrecuenciaTareaUltima string `json:"frecuencia_tarea_ultima"`
 	DatoHoy               string `json:"dato_hoy"`
+	Taxonomia4            string `json:"taxonomia_4"`
 }
 
 type TareaAdmon struct {

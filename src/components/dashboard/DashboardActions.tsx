@@ -11,9 +11,11 @@ import {
     Clock01Icon,
     Calendar02Icon,
     ZapIcon,
-    FilterIcon
+    FilterIcon,
+    ArrowRight01Icon
 } from '@hugeicons/core-free-icons';
 import * as XLSX from 'xlsx';
+import MiniCalendarPicker from './MiniCalendarPicker';
 
 interface TareaData {
     bus: string;
@@ -34,6 +36,12 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     const [priority, setPriority] = useState<'vencidas' | 'proximas' | 'ambas' | null>(null);
     const [busFilter, setBusFilter] = useState<'todos' | 'pares' | 'impares'>('todos');
 
+    // Estados para planeación multi-día
+    const [dates, setDates] = useState<Date[]>([]);
+    const [currentDateIndex, setCurrentDateIndex] = useState<number>(0);
+    const [showCalendar, setShowCalendar] = useState<boolean>(false);
+    const [quotaAlert, setQuotaAlert] = useState<string | null>(null);
+
     // Datos agrupados recibidos desde DashboardGrid via CustomEvent
     const datosAgrupados = useRef<{
         lubricacion: TareaData[];
@@ -44,7 +52,15 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
     // Selección actual del usuario (actualizada en tiempo real)
     const selectedRowsRef = useRef<Set<string>>(new Set());
-    const assignmentsRef = useRef<Record<string, any>>({});
+    const selectedBusesRef = useRef<string[]>([]);
+    const selectedTableBusesRef = useRef<string[]>([]);
+    const selectedBusTaskRef = useRef<Array<{bus: string, tarea: string, tablaIndex: number}>>([]);
+    const assignmentsRef = useRef<Record<string, any>>({}); 
+    
+    // Almacén maestro: snapshot para restaurar selecciones al navegar entre días
+    const [dailyAssignments, setDailyAssignments] = useState<Record<number, { busTask: Array<{bus: string, tarea: string, tablaIndex: number}>, data: any, assignments?: Record<string, any> }>>({}); 
+    // Buses comprometidos por día: SOLO se actualiza al presionar "Siguiente Día"
+    const [committedBuses, setCommittedBuses] = useState<Record<number, string[]>>({});
 
     useEffect(() => {
         const handleGrouped = (e: Event) => {
@@ -69,6 +85,19 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             if (detail?.selectedRows) {
                 selectedRowsRef.current = detail.selectedRows as Set<string>;
             }
+            if (detail?.selectedBuses) {
+                selectedBusesRef.current = detail.selectedBuses as string[];
+            }
+            if (detail?.tableBuses) {
+                const combined: string[] = [];
+                Object.entries(detail.tableBuses).forEach(([tIdx, buses]) => {
+                    (buses as string[]).forEach(b => combined.push(`${tIdx}-${b}`));
+                });
+                selectedTableBusesRef.current = combined;
+            }
+            if (detail?.busTask) {
+                selectedBusTaskRef.current = detail.busTask;
+            }
         };
 
         const handleAssignmentsChanged = (e: Event) => {
@@ -92,17 +121,13 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     }, []);
 
     const generarExcel = async () => {
-        const datos = datosAgrupados.current;
-        if (!datos) return;
+        // Verificar que hay datos en al menos el día actual o en algún día guardado
+        const hayDatos = datosAgrupados.current || Object.values(dailyAssignments).some(s => s.data);
+        if (!hayDatos) return;
 
-        const { lubricacion, engrase, diagnostico, busesRepetidos } = datos;
-
-        // Preparar generador de fechas (de 21:00 a 04:00 del día siguiente, horas completas)
-        const hoy = new Date();
-        // Las horas disponibles: 21, 22, 23, 0, 1, 2, 3, 4 (8 horas)
-        const horasDisponibles = [21, 22, 23, 0, 1, 2, 3, 4];
-
+        // Preparar pad de fechas
         const pad = (n: number) => n.toString().padStart(2, '0');
+        const hoy = new Date();
         const formatFechaInicio = (indice: number) => {
             const totalMinutesRange = 460; // 21:00 a 04:40 = 7h 40min = 460min
             const minutesOffset = (indice * 10) % (totalMinutesRange + 1);
@@ -117,16 +142,32 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             return `${fechaBaseStr} ${pad(h)}:${pad(m)}:00`;
         };
 
-        // Recopilar solo los tarea_abierta_posterior de las filas SELECCIONADAS
-        const seleccionActual = selectedRowsRef.current;
+        // Recopilar tareas de todos los días para el lookup de partes
         const todasTareasConTexto: { texto: string }[] = [];
-        seleccionActual.forEach(key => {
-            const [tIdx, fIdx] = key.split('-').map(Number);
-            const lista = tIdx === 1 ? lubricacion : tIdx === 2 ? engrase : diagnostico;
-            const item = lista[fIdx];
-            if (!item || item.isPlaceholder || !item.tarea?.trim()) return;
-            const tap = (item as any).tarea_abierta_posterior;
+        // Del día actual
+        selectedBusTaskRef.current.forEach(bt => {
+            let lista: any[] = [];
+            if (bt.tablaIndex === 1 && datosAgrupados.current) lista = (datosAgrupados.current as any).lubricacionMotor || [];
+            else if (bt.tablaIndex === 2 && datosAgrupados.current) lista = (datosAgrupados.current as any).engrase || [];
+            else if (bt.tablaIndex === 3 && datosAgrupados.current) lista = (datosAgrupados.current as any).diagnostico || [];
+            else if (bt.tablaIndex === 4 && datosAgrupados.current) lista = (datosAgrupados.current as any).lubricacionChasis || [];
+            const item = lista.find((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+            const tap = item?.tarea_abierta_posterior;
             if (tap) todasTareasConTexto.push({ texto: tap });
+        });
+        // De días anteriores guardados
+        Object.values(dailyAssignments).forEach(snap => {
+            if (!snap.data || !snap.busTask) return;
+            snap.busTask.forEach(bt => {
+                let lista: any[] = [];
+                if (bt.tablaIndex === 1) lista = snap.data.lubricacionMotor || [];
+                else if (bt.tablaIndex === 2) lista = snap.data.engrase || [];
+                else if (bt.tablaIndex === 3) lista = snap.data.diagnostico || [];
+                else if (bt.tablaIndex === 4) lista = snap.data.lubricacionChasis || [];
+                const item = lista.find((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+                const tap = item?.tarea_abierta_posterior;
+                if (tap) todasTareasConTexto.push({ texto: tap });
+            });
         });
 
         // Regex para extraer ID del texto "... | ID: 123456 | ..."
@@ -159,136 +200,140 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 return;
             }
 
-            const filas: any[] = [];
-            let idSolicitud = 1;
-            let tareaGlobalIndex = 0;
+        // --- RECOPILACIÓN DE TODA LA PLANEACIÓN (TODOS LOS DÍAS) ---
+        // Combinar el snapshot guardado en dailyAssignments con el día actual
+        const allDays: Record<number, { busTask: Array<{bus: string, tarea: string, tablaIndex: number}>, data: any, assignments?: Record<string, any> }> = {
+            ...dailyAssignments,
+            [currentDateIndex]: {
+                busTask: [...selectedBusTaskRef.current],
+                data: datosAgrupados.current,
+                assignments: { ...assignmentsRef.current }
+            }
+        };
 
-            // Agrupar la selección actual por bus y tabla
-            const seleccion = selectedRowsRef.current;
-            const tareasPorBusYTabla: Record<string, { 1: TareaData[]; 2: TareaData[]; 3: TareaData[] }> = {};
+        const filas: any[] = [];
+        let idSolicitud = 1;
+        let tareaGlobalIndex = 0;
 
-            seleccion.forEach(key => {
-                const [tIdx, fIdx] = key.split('-').map(Number);
-                const lista = tIdx === 1 ? lubricacion : tIdx === 2 ? engrase : diagnostico;
-                const item = lista[fIdx];
-                if (!item || item.isPlaceholder || !item.tarea?.trim()) return;
+        // Iterar por cada día que tenga datos
+        Object.keys(allDays).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dayKey => {
+            const dayIdx = parseInt(dayKey);
+            const { busTask, data, assignments: dayAssignments = {} } = allDays[dayIdx];
+            if (!data || !busTask || busTask.length === 0) return;
+
+            let tareaIndexDia = 0;
+
+            const { lubricacionMotor, lubricacionChasis, engrase, diagnostico } = data;
+            const fechaPlan = dates[dayIdx] || new Date();
+
+            // Formateador de fecha/hora para este día específico
+            const formatFechaInicioLocal = (indice: number) => {
+                const totalMinutesRange = 460;
+                const minutesOffset = (indice * 10) % (totalMinutesRange + 1);
+                const startHour = 21;
+                const currentTotalMinutes = (startHour * 60 + minutesOffset) % (24 * 60);
+                const h = Math.floor(currentTotalMinutes / 60);
+                const m = currentTotalMinutes % 60;
+
+                // Si la hora es < 21, significa que ya es el día siguiente (madrugada)
+                const d = new Date(fechaPlan);
+                if (h < 21) d.setDate(d.getDate() + 1);
+
+                const padLocal = (n: number) => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${padLocal(d.getMonth() + 1)}-${padLocal(d.getDate())} ${padLocal(h)}:${padLocal(m)}:00`;
+            };
+
+            // Agrupar por bus usando busTask
+            const tareasPorBusYTabla: Record<string, { 1: TareaData[]; 2: TareaData[]; 3: TareaData[]; 4: TareaData[] }> = {};
+            busTask.forEach(bt => {
+                let lista: any[] = [];
+                if (bt.tablaIndex === 1) lista = lubricacionMotor;
+                else if (bt.tablaIndex === 2) lista = engrase;
+                else if (bt.tablaIndex === 3) lista = diagnostico;
+                else if (bt.tablaIndex === 4) lista = lubricacionChasis;
+
+                const idx = lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+                if (idx === -1) return;
+                const item = lista[idx];
+                if (!item || item.isPlaceholder) return;
+                
+                // Construir rowId igual que en DashboardGrid: ${tablaIndex}-${filaIndex}
+                const rowId = `${bt.tablaIndex}-${idx}`;
+                
                 if (!tareasPorBusYTabla[item.bus]) {
-                    tareasPorBusYTabla[item.bus] = { 1: [], 2: [], 3: [] };
+                    tareasPorBusYTabla[item.bus] = { 1: [], 2: [], 3: [], 4: [] };
                 }
-                tareasPorBusYTabla[item.bus][tIdx as 1 | 2 | 3].push(item);
+                tareasPorBusYTabla[item.bus][bt.tablaIndex as 1|2|3|4].push({ ...item, _rowId: rowId } as any);
             });
 
-            // Contar en cuántas tablas (1, 2, 3) tiene tareas el bus
-            const countTables = (bus: string) => {
-                const data = tareasPorBusYTabla[bus];
-                if (!data) return 0;
-                return (data[1].length > 0 ? 1 : 0) + 
-                       (data[2].length > 0 ? 1 : 0) + 
-                       (data[3].length > 0 ? 1 : 0);
-            };
-
-            // Contar el total de tareas seleccionadas de un bus
-            const countTotalTasks = (bus: string) => {
-                const data = tareasPorBusYTabla[bus];
-                if (!data) return 0;
-                return data[1].length + data[2].length + data[3].length;
-            };
-
-            // Ordenar buses: mayor cantidad de coincidencias (tablas) primero
-            const busesOrdenados = Object.keys(tareasPorBusYTabla).sort((a, b) => {
-                const countA = countTables(a);
-                const countB = countTables(b);
-                if (countA !== countB) {
-                    return countB - countA; // Descendente: 3 tablas, luego 2, luego 1
-                }
-                
-                // Si tienen la misma cantidad de tablas coincidentes,
-                // el desempate se basa en la cantidad total de tareas SELECCIONADAS
-                const totalA = countTotalTasks(a);
-                const totalB = countTotalTasks(b);
-                if (totalA !== totalB) {
-                    return totalB - totalA; // Descendente: más tareas seleccionadas primero
-                }
-                
-                // Desempate final alfabético
-                return a.localeCompare(b);
-            });
+            // Ordenar buses del día
+            const busesOrdenados = Object.keys(tareasPorBusYTabla).sort((a, b) => a.localeCompare(b));
 
             busesOrdenados.forEach(bus => {
                 const porTabla = tareasPorBusYTabla[bus];
-                if (!porTabla) return;
-
                 const todasLasTareas = [
-                    ...porTabla[1].map(t => ({ tarea: t.tarea, tap: (t as any).tarea_abierta_posterior })),
-                    ...porTabla[2].map(t => ({ tarea: t.tarea, tap: (t as any).tarea_abierta_posterior })),
-                    ...porTabla[3].map(t => ({ tarea: t.tarea, tap: (t as any).tarea_abierta_posterior }))
+                    ...porTabla[1], ...porTabla[2], ...porTabla[3], ...porTabla[4]
                 ];
 
-                if (todasLasTareas.length === 0) return;
-
-                todasLasTareas.forEach(({ tarea, tap }) => {
-                    const rowKey = Array.from(selectedRowsRef.current).find(k => {
-                        const [t, f] = k.split('-').map(Number);
-                        const l = t === 1 ? lubricacion : t === 2 ? engrase : diagnostico;
-                        return l[f]?.bus === bus && l[f]?.tarea === tarea;
-                    });
-
-                    const customData = rowKey ? assignmentsRef.current[rowKey] : null;
-
-                    const idAdmon = extraerID(tap);
+                todasLasTareas.forEach((t) => {
+                    const idAdmon = extraerID((t as any).tarea_abierta_posterior);
                     const parteInfo = idAdmon ? partesMap[idAdmon] : null;
                     const taxonomiaFull = parteInfo?.taxonomia_encadenada ?? '';
-                    const taxonomias = taxonomiaFull.split('|').map((t: string) => t.trim());
+                    const taxonomias = taxonomiaFull.split('|').map((txt: string) => txt.trim());
 
-                    const matchPrioridad = (parteInfo?.prioridad ?? '').match(/^\d+/);
+                    // Obtener las modificaciones del usuario para esta tarea
+                    const rowId = (t as any)._rowId;
+                    const userAssignment = (rowId && dayAssignments[rowId]) ? dayAssignments[rowId] : {};
+
+                    // Helper: usar valor del usuario si existe, sino el de la BD
+                    const getValue = (userVal: any, dbVal: any) => {
+                        return (userVal !== undefined && userVal !== null && userVal !== '') ? userVal : dbVal;
+                    };
+
                     const filaBase: any = {
                         'ID SOLICITUD TRABAJO': idSolicitud,
                         'CODIGO': bus,
                         'PARTE': parteInfo?.parte ?? '',
-                        'TAREA': tarea,
+                        'TAREA': t.tarea,
                         'FECHA PROPUESTA': parteInfo?.fecha_propuesta ?? '',
-                        'FECHA INICIO': formatFechaInicio(tareaGlobalIndex),
-                        'NOMBRE DIA': customData?.nombreDia || parteInfo?.nombre_dia || '',
-                        'MES FECHA INICIO': parteInfo?.mes_inicio ?? '',
-                        'DIA FECHA INICIO': parteInfo?.dia_inicio ?? '',
+                        'FECHA INICIO': getValue(userAssignment.fechaInicio, formatFechaInicioLocal(tareaIndexDia)),
+                        'NOMBRE DIA': formatDay(dates[dayIdx]).split(' ')[1] || '',
+                        'MES FECHA INICIO': (dates[dayIdx].getMonth() + 1),
+                        'DIA FECHA INICIO': dates[dayIdx].getDate(),
                         'MODO DETECCION': parteInfo?.modo_deteccion ?? '',
-                        'CODIGO PRIORIDAD': (customData?.codigoPrioridad?.toString() || (parteInfo?.prioridad?.toString() || '').charAt(0) || '').charAt(0),
-                        'CODIGO SUBPROCESO': (() => {
-                            const rawSub = (customData?.codigoSubproceso || parteInfo?.subproceso || '').toString().toUpperCase();
-                            const sub = (rawSub.includes('PREVENTIVO') || rawSub.includes('PRENVENTIVO')) ? 'PREVEN' : rawSub;
-                            return sub.substring(0, 6);
-                        })(),
-                        'CODIGO ZONA MAQUINA': customData?.codigoZonaMaquina || (parteInfo?.zona_maquina ?? ''),
-                        'CODIGO CAUSA BASICA': customData?.codigoCausaBasica || (parteInfo?.causa_basica ?? ''),
-                        'CODIGO RESPONSABLE': customData?.codigoResponsable || (parteInfo?.codigo_responsable ?? ''),
-                        'IDENTIFICACION EMPLEADO': '',
-                        'CODIGO EMPLEADO': customData?.codigoEmpleado || (parteInfo?.identificacion_empleado ?? ''),
+                        'CODIGO PRIORIDAD': getValue(userAssignment.codigoPrioridad, (parteInfo?.prioridad?.toString() || '').charAt(0) || '1'),
+                        'CODIGO SUBPROCESO': getValue(userAssignment.codigoSubproceso, 'PREVEN'),
+                        'CODIGO ZONA MAQUINA': getValue(userAssignment.codigoZonaMaquina, parteInfo?.zona_maquina ?? ''),
+                        'CODIGO CAUSA BASICA': getValue(userAssignment.codigoCausaBasica, parteInfo?.causa_basica ?? ''),
+                        'CODIGO RESPONSABLE': getValue(userAssignment.codigoResponsable, parteInfo?.codigo_responsable ?? ''),
                         'TIEMPO CARACTERIZACION': parteInfo?.tiempo_caracterizacion ?? '',
                         'TIEMPO DESPLAZAMIENTO': parteInfo?.tiempo_desplazamiento ?? '',
                         'TIEMPO PLANEACION': parteInfo?.tiempo_planeacion ?? '',
                         'TIEMPO CIERRE': parteInfo?.tiempo_cierre ?? '',
-                        'OBSERVACION': customData?.observacion || (parteInfo?.observacion ?? ''),
-                        'CODIGO ESTADO': 'PRE',
-                        'FRECUENCIA': parteInfo?.frecuencia ?? '',
+                        'OBSERVACION': getValue(userAssignment.observacion, parteInfo?.observacion ?? ''),
+                        'CODIGO ESTADO': getValue(userAssignment.codigoEstado, 'PRE'),
+                        'FRECUENCIA': t.frecuencia_tarea_ultima || '',
                         'FRECUENCIA CARACTERIZADA': parteInfo?.frecuencia_caracterizada ?? '',
+                        'IDENTIFICACION EMPLEADO': getValue(userAssignment.codigoEmpleado, parteInfo?.identificacion_empleado ?? ''),
+                        'CODIGO EMPLEADO': parteInfo?.empleado ?? '',
                         'AGRUPACION TAREA': parteInfo?.agrupacion_tarea ?? '',
                         'TIPO POLITICA': parteInfo?.tipo_politica ?? '',
                         'POLITICA': parteInfo?.politica ?? '',
-                        'VALOR VARIABLE': customData?.valorVariable || (parteInfo?.valor_variable ?? ''),
-                        'NRO REVISION': '',
-                        'NRO NOVEDAD': '',
-                        'NOVEDAD': '',
-                        'EMPLEADO REPORTA NOVEDAD': '',
-                        'OBSERVACION NOVEDAD': '',
+                        'VALOR VARIABLE': getValue(userAssignment.valorVariable, parteInfo?.valor_variable ?? ''),
+                        'NRO REVISION': parteInfo?.nro_revision ?? '',
+                        'NRO NOVEDAD': parteInfo?.numero_novedad ?? '',
+                        'NOVEDAD': parteInfo?.novedad ?? '',
+                        'EMPLEADO REPORTA NOVEDAD': parteInfo?.empleado_reporta_novedad ?? '',
+                        'OBSERVACION NOVEDAD': parteInfo?.observacion_novedad ?? '',
                         'MOTIVO CAUSA PARADA': parteInfo?.motivo_causa_parada ?? '',
-                        'DURACION': (parteInfo?.duracion ?? '').split('.')[0],
+                        'DURACION': (parteInfo?.duracion ?? '0').split('.')[0],
                         'PORCENTAJE DURACION': parteInfo?.porcentaje_duracion ?? '',
                         'USUARIO CREADOR': parteInfo?.usuario_creador ?? '',
                         'ID TAREA SOLICITADA': parteInfo?.id_tarea_solicitada ?? '',
                         'FECHA SOLICITUD NOVEDAD': parteInfo?.fecha_solicitud_novedad ?? '',
-                        'ESTADO OPERATIVIDAD': 'VEHICULO EN MANTENIMIENTO PREVENTIVO',
                         'REFERENCIA INTELIGENTE PARTE': parteInfo?.referencia_inteligente ?? '',
-                        'VALOR MIN VARIABLE': parteInfo?.valor_min_variable ?? ''
+                        'VALOR MIN VARIABLE': parteInfo?.valor_min_variable ?? '',
+                        'ESTADO OPERATIVIDAD': 'VEHICULO EN MANTENIMIENTO PREVENTIVO'
                     };
 
                     for (let i = 1; i <= 9; i++) {
@@ -297,14 +342,16 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
                     filas.push(filaBase);
                     tareaGlobalIndex++;
+                    tareaIndexDia++;
                 });
                 idSolicitud++;
             });
+        });
 
-            if (filas.length === 0) {
-                alert('No hay datos para exportar.');
-                return;
-            }
+        if (filas.length === 0) {
+            alert('No hay datos seleccionados en ningún día.');
+            return;
+        }
 
             // --- USO DEL WEB WORKER PARA GENERAR EL EXCEL ---
             const worker = new Worker(new URL('../../workers/excelWorker.ts', import.meta.url), { type: 'module' });
@@ -374,6 +421,179 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         }
     };
 
+    const checkQuotas = () => {
+        if (!datosAgrupados.current) return false;
+        const selected = selectedRowsRef.current;
+        const stats = { motor: new Set<string>(), chasis: new Set<string>(), engrase: new Set<string>(), diagnostico: new Set<string>() };
+        
+        selected.forEach(key => {
+            const [tIdx, fIdx] = key.split('-').map(Number);
+            // El backend envía lubricacionMotor y lubricacionChasis en el evento
+            const { lubricacionMotor, lubricacionChasis, engrase, diagnostico } = datosAgrupados.current as any;
+            const data = tIdx === 1 ? lubricacionMotor : tIdx === 2 ? engrase : tIdx === 3 ? diagnostico : lubricacionChasis;
+            if (data && data[fIdx] && !data[fIdx].isPlaceholder) {
+                if (tIdx === 1) stats.motor.add(data[fIdx].bus);
+                if (tIdx === 2) stats.engrase.add(data[fIdx].bus);
+                if (tIdx === 3) stats.diagnostico.add(data[fIdx].bus);
+                if (tIdx === 4) stats.chasis.add(data[fIdx].bus);
+            }
+        });
+
+        const lubricacionCombinada = new Set([...stats.motor, ...stats.chasis]).size;
+        const engraseTotal = stats.engrase.size;
+        const diagTotal = stats.diagnostico.size;
+
+        if (lubricacionCombinada < 1) {
+            setQuotaAlert("Faltan vehículos en Lubricación. Debes tener al menos 1 vehículo para poder avanzar.");
+            return false;
+        }
+        if (engraseTotal < 1) {
+            setQuotaAlert("Faltan vehículos en Engrase. Debes tener al menos 1 vehículo para poder avanzar.");
+            return false;
+        }
+        if (diagTotal < 1) {
+            setQuotaAlert("Faltan vehículos en Diagnóstico. Debes tener al menos 1 vehículo para poder avanzar.");
+            return false;
+        }
+        return true;
+    };
+
+    const getExcludedBuses = (skipIndex: number) => {
+        const excluded = new Set<string>();
+        // Solo usamos committedBuses: solo los días confirmados con "Siguiente Día" excluyen buses
+        Object.entries(committedBuses).forEach(([idx, buses]) => {
+            if (parseInt(idx) !== skipIndex) {
+                buses.forEach(b => excluded.add(b));
+            }
+        });
+        return Array.from(excluded);
+    };
+
+    const goToDay = (index: number, skipSave = false, committedOverride?: Record<number, string[]>) => {
+        if (index === currentDateIndex) return;
+
+        // 1. Guardar snapshot de restauración (busTask + assignments) para poder volver
+        if (!skipSave) {
+            const updatedDaily = {
+                ...dailyAssignments,
+                [currentDateIndex]: {
+                    busTask: [...selectedBusTaskRef.current],
+                    data: datosAgrupados.current,
+                    assignments: { ...assignmentsRef.current }
+                }
+            };
+            setDailyAssignments(updatedDaily);
+        }
+
+        // 2. Determinar qué buses están comprometidos en días anteriores
+        const committed = committedOverride || committedBuses;
+        const excludedBuses: string[] = [];
+        for (let i = 0; i < index; i++) {
+            if (committed[i]) {
+                excludedBuses.push(...committed[i]);
+            }
+        }
+
+        // 3. Recuperar snapshot del día destino
+        const targetSnap = dailyAssignments[index] || { busTask: [], data: null, assignments: {} };
+
+        // 4. CRÍTICO: Actualizar assignmentsRef.current para sincronizar con el día destino
+        // Esto evita que los datos del día anterior se guarden en el siguiente
+        assignmentsRef.current = { ...(targetSnap.assignments || {}) };
+
+        // 5. Cambiar de día y disparar carga
+        setCurrentDateIndex(index);
+        
+        // Emitir evento con la fecha seleccionada
+        const selectedDate = dates[index] || new Date();
+        window.dispatchEvent(new CustomEvent('dashboard-date-changed', {
+            detail: { selectedDate }
+        }));
+        
+        window.dispatchEvent(new CustomEvent('dashboard-load-day', {
+            detail: {
+                busTask: targetSnap.busTask || [],
+                data: targetSnap.data,
+                excludedBuses,
+                assignments: targetSnap.assignments || {}
+            }
+        }));
+
+        // 5. Restaurar estado de agrupación del día destino
+        if (!targetSnap.data) {
+            setHasGrouped(false);
+            datosAgrupados.current = null;
+        } else {
+            setHasGrouped(true);
+            datosAgrupados.current = targetSnap.data;
+        }
+    };
+
+    const nextDay = () => {
+        if (!checkQuotas()) return;
+
+        if (currentDateIndex < dates.length - 1) {
+            // Construir el nuevo mapa de comprometidos de forma sincrona
+            const newCommitted: Record<number, string[]> = {
+                ...committedBuses,
+                [currentDateIndex]: [...selectedTableBusesRef.current]
+            };
+            setCommittedBuses(newCommitted);
+
+            // Guardar también el snapshot del día actual para que aparezca como completado
+            const newDaily = {
+                ...dailyAssignments,
+                [currentDateIndex]: {
+                    busTask: [...selectedBusTaskRef.current],
+                    data: datosAgrupados.current,
+                    assignments: { ...assignmentsRef.current }
+                }
+            };
+            setDailyAssignments(newDaily);
+
+            // Pasar newCommitted directamente para que goToDay use los buses correctos
+            goToDay(currentDateIndex + 1, true, newCommitted);
+        } else {
+            alert('Has llegado al último día de la planeación.');
+        }
+    };
+
+    const handleRangeSelect = (start: Date, end: Date) => {
+        const diffTime = end.getTime() - start.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        if (diffDays > 7) {
+            alert('El rango máximo permitido es de 7 días.');
+            return;
+        }
+
+        const newDates = [];
+        for (let i = 0; i < diffDays; i++) {
+            const d = new Date(start);
+            d.setDate(d.getDate() + i);
+            newDates.push(d);
+        }
+        setDates(newDates);
+        setCurrentDateIndex(0);
+        setDailyAssignments({});
+        setCommittedBuses({});
+        setShowCalendar(false);
+        
+        // Emitir evento con la primera fecha seleccionada
+        if (newDates.length > 0) {
+            window.dispatchEvent(new CustomEvent('dashboard-date-changed', {
+                detail: { selectedDate: newDates[0] }
+            }));
+        }
+    };
+
+    const formatDay = (d: Date) => {
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const num = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        return `${num}/${month}/${d.getFullYear()} ${days[d.getDay()]}`;
+    };
+
     const handleAction = async (action: string) => {
         if (loading) return;
 
@@ -381,12 +601,19 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             window.dispatchEvent(new CustomEvent('dashboard-agrupar', {
                 detail: {
                     priority,
-                    busFilter
+                    busFilter,
+                    excludedBuses: getExcludedBuses(currentDateIndex)
                 }
             }));
             return;
         } else if (action === 'reagrupar') {
-            window.dispatchEvent(new CustomEvent('dashboard-agrupar', { detail: { priority, busFilter } }));
+            window.dispatchEvent(new CustomEvent('dashboard-agrupar', { 
+                detail: { 
+                    priority, 
+                    busFilter,
+                    excludedBuses: getExcludedBuses(currentDateIndex)
+                } 
+            }));
 
         } else if (action === 'generar') {
             setLoading(action);
@@ -454,6 +681,64 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
     return (
         <div class="flex flex-wrap items-center gap-4 bg-white p-2.5 rounded-[26px] shadow-sm border border-gray-100 animate-fade-in">
+            {/* 1. Selector de Días (Si no hay fechas generadas) */}
+            {dates.length === 0 && (
+                <div class="relative flex items-center gap-2 mr-2">
+                    <div class="flex items-center gap-2 border-r border-gray-200 pr-3">
+                        <HugeiconsIcon icon={Calendar03Icon} size={14} className="text-texto-grey" />
+                        <span class="text-[10px] font-black text-texto-grey uppercase tracking-widest">Planear Fechas</span>
+                    </div>
+                    
+                    <button 
+                        onClick={() => setShowCalendar(!showCalendar)}
+                        class="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-texto-dark border border-gray-200 rounded-xl text-[10px] font-bold hover:bg-gray-100 transition-colors"
+                    >
+                        Seleccionar Rango
+                    </button>
+                    
+                    {showCalendar && (
+                        <div class="absolute top-full left-0 mt-2 z-50">
+                            <MiniCalendarPicker onSelectRange={handleRangeSelect} />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* 2. Pills de Fechas (Si hay fechas generadas) */}
+            {dates.length > 0 && (
+                <div class="flex items-center gap-2 mr-2 border-r pr-3 border-gray-200">
+                    <HugeiconsIcon icon={Calendar03Icon} size={16} className="text-primary" />
+                    <div class="flex gap-1 overflow-x-auto max-w-[300px] sm:max-w-none no-scrollbar">
+                        {dates.map((d, i) => {
+                            const esActivo = i === currentDateIndex;
+                            const esCompletado = !!committedBuses[i] && committedBuses[i].length > 0;
+                            const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                            const label = `${dias[d.getDay()]} ${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+                            return (
+                                <button 
+                                    key={i}
+                                    onClick={() => goToDay(i)}
+                                    class={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-200 border ${
+                                        esActivo
+                                            ? 'bg-primary text-white shadow-md border-primary scale-105 z-10'
+                                            : esCompletado
+                                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <div class="flex items-center gap-1.5">
+                                        {esCompletado && !esActivo && (
+                                            <HugeiconsIcon icon={Tick02Icon} size={10} />
+                                        )}
+                                        <span>{label}</span>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {!hasGrouped && (
                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50/50 rounded-2xl border border-gray-100/50 mr-2">
                     <div class="flex items-center gap-2 mr-2 border-r border-gray-200 pr-3">
@@ -515,12 +800,68 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 <>
                     {renderButton('reagrupar', 'Volver a Agrupar', RefreshIcon)}
                     {renderButton('vistaCompleta', 'Ver Vista Completa', ViewIcon)}
-                    {renderButton('generar', 'Generar Vista', PlayIcon)}
+                    
+                    {/* Si estamos planeando múltiples días y aún no es el último día, mostramos Siguiente Día */}
+                    {dates.length > 0 && currentDateIndex < dates.length - 1 ? (
+                        <button
+                            onClick={nextDay}
+                            class="relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden bg-green-500 text-white hover:bg-green-600 hover:shadow-lg hover:shadow-green-500/30 active:scale-95 ml-auto"
+                        >
+                            <div class="flex items-center gap-2">
+                                <span>Siguiente Día</span>
+                                <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                            </div>
+                        </button>
+                    ) : (
+                        renderButton('generar', 'Generar Vista', PlayIcon)
+                    )}
                 </>
             ) : (
                 <>
-                    {renderButton('agrupar', 'Agrupar', Layers01Icon)}
+                    <button
+                        onClick={() => handleAction('agrupar')}
+                        disabled={dates.length > 0 && !dates[currentDateIndex]}
+                        class="relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden bg-primary text-white hover:shadow-lg hover:shadow-primary/30 active:scale-95 disabled:opacity-50 ml-auto"
+                    >
+                        <div class="flex items-center gap-2">
+                            <HugeiconsIcon icon={Layers01Icon} size={18} />
+                            <span>Agrupar</span>
+                        </div>
+                    </button>
                 </>
+            )}
+
+            {/* Modal de Alerta de Cuotas */}
+            {quotaAlert && (
+                <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div 
+                        class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div class="p-8 flex flex-col items-center text-center">
+                            <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
+                                <HugeiconsIcon icon={ZapIcon} size={32} className="text-orange-500" />
+                            </div>
+                            
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">
+                                ¡Atención Requerida!
+                            </h3>
+                            
+                            <p class="text-sm text-gray-500 leading-relaxed">
+                                {quotaAlert}
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-gray-50 flex gap-3">
+                            <button
+                                onClick={() => setQuotaAlert(null)}
+                                class="flex-1 py-3 px-4 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95"
+                            >
+                                Entendido, lo revisaré
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <style>{`

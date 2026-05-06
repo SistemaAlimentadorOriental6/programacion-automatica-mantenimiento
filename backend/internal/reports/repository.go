@@ -53,7 +53,8 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 			tarea_abierta_posterior,
 			frecuencia_tarea_ultima,
 			duracion_hoy_ied,
-			bus_en_franja_hoy
+			bus_en_franja_hoy,
+			taxonomia_4
 		FROM reporte_tareas
 		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
 		AND estado_bus IS NULL
@@ -73,13 +74,16 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja, taxonomia4 sql.NullString
 		var duracionHoy sql.NullFloat64
 
 		// El Scan debe coincidir con el número de columnas del SELECT
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja, &taxonomia4); err != nil {
 			log.Printf("[ERROR] Scan en GetEngraseReports: %v", err)
 			continue
+		}
+		if taxonomia4.Valid {
+			rt.Taxonomia4 = taxonomia4.String
 		}
 		if tareaAbierta.Valid {
 			rt.TareaAbiertaPosterior = tareaAbierta.String
@@ -118,7 +122,8 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 			tarea_abierta_posterior,
 			frecuencia_tarea_ultima,
 			duracion_hoy_ied,
-			bus_en_franja_hoy
+			bus_en_franja_hoy,
+			taxonomia_4
 		FROM reporte_tareas
 		WHERE estado_bus IS NULL
 		AND bus_en_franja_hoy IN ('SI', 'NO')
@@ -138,10 +143,13 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja, taxonomia4 sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja, &taxonomia4); err != nil {
 			return nil, fmt.Errorf("error al escanear fila: %w", err)
+		}
+		if taxonomia4.Valid {
+			rt.Taxonomia4 = taxonomia4.String
 		}
 		if tareaAbierta.Valid {
 			rt.TareaAbiertaPosterior = tareaAbierta.String
@@ -286,7 +294,8 @@ func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
 			tarea_abierta_posterior, 
 			frecuencia_tarea_ultima, 
 			duracion_hoy_ied,
-			bus_en_franja_hoy
+			bus_en_franja_hoy,
+			taxonomia_4
 		FROM reporte_tareas 
 		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
 		AND estado_bus IS NULL
@@ -306,10 +315,13 @@ func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja, taxonomia4 sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja, &taxonomia4); err != nil {
 			continue
+		}
+		if taxonomia4.Valid {
+			rt.Taxonomia4 = taxonomia4.String
 		}
 		if tareaAbierta.Valid {
 			rt.TareaAbiertaPosterior = tareaAbierta.String
@@ -348,7 +360,8 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 			tarea_abierta_posterior, 
 			frecuencia_tarea_ultima, 
 			duracion_hoy_ied,
-			bus_en_franja_hoy
+			bus_en_franja_hoy,
+			taxonomia_4
 		FROM reporte_tareas 
 		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
 		AND estado_bus IS NULL
@@ -368,10 +381,13 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
-		var tareaAbierta, frecuenciaUltima, busEnFranja sql.NullString
+		var tareaAbierta, frecuenciaUltima, busEnFranja, taxonomia4 sql.NullString
 		var duracionHoy sql.NullFloat64
-		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja); err != nil {
+		if err := rows.Scan(&rt.Bus, &rt.Tarea, &rt.Estado, &tareaAbierta, &frecuenciaUltima, &duracionHoy, &busEnFranja, &taxonomia4); err != nil {
 			continue
+		}
+		if taxonomia4.Valid {
+			rt.Taxonomia4 = taxonomia4.String
 		}
 		if tareaAbierta.Valid {
 			rt.TareaAbiertaPosterior = tareaAbierta.String

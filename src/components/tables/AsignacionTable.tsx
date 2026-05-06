@@ -13,7 +13,8 @@ import {
     PackageIcon,
     PencilEdit02Icon,
     FileAttachmentIcon,
-    CircleIcon
+    CircleIcon,
+    Search01Icon
 } from '@hugeicons/core-free-icons';
 
 interface AsignacionRow {
@@ -30,28 +31,55 @@ interface AsignacionTableProps {
     onAssign: (rowId: string, field: string, value: any) => void;
     onAssignMulti: (rowIds: string[], field: string, value: any) => void;
     onAssignAll: (field: string, value: any, data: AsignacionRow[]) => void;
+    selectedDate?: Date;
 }
 
-export default function AsignacionTable({ data, assignments, onAssign, onAssignMulti, onAssignAll }: AsignacionTableProps) {
+export default function AsignacionTable({ data, assignments, onAssign, onAssignMulti, onAssignAll, selectedDate }: AsignacionTableProps) {
     const [contextMenu, setContextMenu] = useState<{ field: string; value: any; x: number; y: number; rowIds: string[] } | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [responsables, setResponsables] = useState<{ codigo: string, nombre: string, apellido: string, cargo: string }[]>([]);
     const [tecnicos, setTecnicos] = useState<{ codigo: string, nombre: string, apellido: string, cargo: string }[]>([]);
     const [activeDropdown, setActiveDropdown] = useState<{ bus: string, field: string, rowIds: string[], x: number, y: number } | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoadingData, setIsLoadingData] = useState(true);
+
+    // Función para calcular fecha de inicio pronosticada
+    const formatFechaInicio = (indice: number) => {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const fechaBase = selectedDate || new Date(); // Usar fecha seleccionada o fecha actual
+        const totalMinutesRange = 460; // 21:00 a 04:40 = 7h 40min = 460min
+        const minutesOffset = (indice * 10) % (totalMinutesRange + 1);
+
+        const startHour = 21;
+        const currentTotalMinutes = (startHour * 60 + minutesOffset) % (24 * 60);
+
+        const h = Math.floor(currentTotalMinutes / 60);
+        const m = currentTotalMinutes % 60;
+
+        const fechaBaseStr = fechaBase.getFullYear() + '-' + pad(fechaBase.getMonth() + 1) + '-' + pad(fechaBase.getDate());
+        return `${fechaBaseStr} ${pad(h)}:${pad(m)}:00`;
+    };
 
     useEffect(() => {
         const fetchDatos = async () => {
+            setIsLoadingData(true);
             const token = localStorage.getItem('token');
             const headers = { 'Authorization': `Bearer ${token}` };
 
-            // Cargar ambos en paralelo
-            const [resRes, resTec] = await Promise.all([
-                fetch(`${API_URL}/reports/responsables`, { headers }),
-                fetch(`${API_URL}/reports/tecnicos`, { headers })
-            ]);
+            try {
+                // Cargar ambos en paralelo
+                const [resRes, resTec] = await Promise.all([
+                    fetch(`${API_URL}/reports/responsables`, { headers }),
+                    fetch(`${API_URL}/reports/tecnicos`, { headers })
+                ]);
 
-            if (resRes.ok) setResponsables(await resRes.json());
-            if (resTec.ok) setTecnicos(await resTec.json());
+                if (resRes.ok) setResponsables(await resRes.json());
+                if (resTec.ok) setTecnicos(await resTec.json());
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            } finally {
+                setIsLoadingData(false);
+            }
         };
         fetchDatos();
     }, []);
@@ -98,16 +126,26 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
                 x: targetRect.left - parentRect.left,
                 y: targetRect.bottom - parentRect.top + 5
             });
+            setSearchTerm(''); // Limpiar búsqueda al abrir
         }
     };
 
     const handleSelectResponsable = (rowIds: string[], field: string, codigo: string) => {
         handleFieldChange(rowIds, field, codigo);
         setActiveDropdown(null);
+        setSearchTerm(''); // Limpiar búsqueda al cerrar
     };
 
     const handleRightClick = (e: MouseEvent, field: string, value: any, rowIds: string[]) => {
         e.preventDefault();
+        
+        // Si es responsable o empleado Y tiene valor, aplicar automáticamente a toda la columna
+        if ((field === 'codigoResponsable' || field === 'codigoEmpleado') && value && value.trim() !== '') {
+            onAssignAll(field, value, data);
+            return; // No mostrar menú contextual, aplicar directamente
+        }
+        
+        // Para otros campos, mostrar menú contextual normal
         const target = e.currentTarget as HTMLElement;
         const parent = target.closest('.relative-parent');
         if (!parent) return;
@@ -144,20 +182,51 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
         { key: 'valorVariable', label: 'VALOR VARIABLE', icon: PackageIcon, type: 'text', width: '180px' },
     ];
 
+    // Skeleton Loader
+    const renderSkeleton = () => (
+        <div class="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-100 overflow-hidden p-6">
+            <div class="space-y-4">
+                {/* Header Skeleton */}
+                <div class="flex items-center gap-4 pb-4 border-b border-gray-100">
+                    <div class="w-24 h-8 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                    <div class="w-32 h-8 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                    <div class="w-40 h-8 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                </div>
+                
+                {/* Rows Skeleton */}
+                {[...Array(5)].map((_, i) => (
+                    <div key={i} class="grid grid-cols-[120px_180px_1fr] gap-4 items-center p-4 bg-gray-50/50 rounded-2xl">
+                        {/* Bus */}
+                        <div class="w-20 h-8 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                        
+                        {/* Gestiones */}
+                        <div class="flex gap-2">
+                            <div class="w-16 h-6 bg-gray-200 rounded-full animate-pulse-shimmer"></div>
+                            <div class="w-16 h-6 bg-gray-200 rounded-full animate-pulse-shimmer"></div>
+                        </div>
+                        
+                        {/* Campos */}
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="h-10 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                            <div class="h-10 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                            <div class="h-10 bg-gray-200 rounded-xl animate-pulse-shimmer"></div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    if (isLoadingData) {
+        return (
+            <div id="matriz-reporte" class="flex flex-col w-full relative-parent relative pb-20 scroll-reveal-card animate-entrance">
+                {renderSkeleton()}
+            </div>
+        );
+    }
+
     return (
         <div id="matriz-reporte" class="flex flex-col w-full relative-parent relative pb-20 scroll-reveal-card animate-entrance">
-            {/* Título de Sección */}
-            <div class="mb-6 flex items-center justify-between px-2">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center text-primary animate-pulse">
-                        <HugeiconsIcon icon={FileAttachmentIcon} size={24} />
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-texto-dark tracking-tight">Matriz de Reporte Automático</h3>
-                        <p class="text-[10px] font-black text-texto-grey uppercase tracking-widest opacity-60 italic">Agrupado por Vehículo - Edición Masiva Sincronizada</p>
-                    </div>
-                </div>
-            </div>
 
             {/* Contenedor de Tabla con Scroll Premium */}
             <div class="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-100 overflow-hidden">
@@ -182,7 +251,7 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            {groupedData.map((group) => (
+                            {groupedData.map((group, groupIndex) => (
                                 <tr key={group.bus} class="group hover:bg-primary/[0.01] transition-all duration-300">
                                     {/* Vehículo - Sticky */}
                                     <td class="sticky left-0 z-10 bg-white group-hover:bg-[#fcfdfc] px-6 py-5 border-r border-gray-100/50 shadow-[4px_0_10px_rgba(0,0,0,0.02)]">
@@ -218,11 +287,16 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
                                     {/* Columnas Editables */}
                                     {columns.map(col => {
                                         // Buscar el primer valor no vacío entre todas las tareas del bus
-                                        const groupValue = group.taskIds.reduce((found, id) => {
+                                        let groupValue = group.taskIds.reduce((found, id) => {
                                             if (found) return found;
                                             const val = assignments[id]?.[col.key];
                                             return (val !== undefined && val !== '') ? val : '';
                                         }, '');
+
+                                        // Si es fechaInicio y no hay valor, calcular fecha pronosticada
+                                        if (col.key === 'fechaInicio' && !groupValue) {
+                                            groupValue = formatFechaInicio(groupIndex);
+                                        }
 
                                         return (
                                             <td key={col.key} style={{ width: col.width, minWidth: col.width }} class="px-3 py-4">
@@ -234,11 +308,11 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
                                                     ) : (
                                                         <input
                                                             type={col.type}
-                                                            value={col.key === 'fechaInicio' ? groupValue.substring(0, 10) : groupValue}
+                                                            value={col.key === 'fechaInicio' ? groupValue.substring(0, 16) : groupValue}
                                                             onInput={(e) => handleFieldChange(group.taskIds, col.key, (e.target as HTMLInputElement).value)}
                                                             onMouseDown={(e) => handleInputClick(e, group.bus, col.key, group.taskIds)}
                                                             readOnly={col.key === 'codigoResponsable' || col.key === 'codigoEmpleado'}
-                                                            placeholder={col.key === 'fechaInicio' ? 'AAAA-MM-DD' : '...'}
+                                                            placeholder={col.key === 'fechaInicio' ? 'AAAA-MM-DD HH:MM' : '...'}
                                                             class={`w-full bg-gray-50/40 hover:bg-white border-2 border-transparent hover:border-primary/10 rounded-xl px-5 py-3 text-[13px] font-bold text-texto-dark transition-all focus:bg-white focus:border-primary/30 focus:ring-8 focus:ring-primary/5 outline-none placeholder:text-gray-300 ${(col.key === 'codigoResponsable' || col.key === 'codigoEmpleado') ? 'cursor-pointer selection:bg-transparent' : ''}`}
                                                         />
                                                     )}
@@ -257,21 +331,68 @@ export default function AsignacionTable({ data, assignments, onAssign, onAssignM
             {activeDropdown && (
                 <div
                     style={{ left: `${activeDropdown.x}px`, top: `${activeDropdown.y}px` }}
-                    class="absolute z-[120] w-[300px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-pop-in origin-top"
+                    class="absolute z-[120] w-[350px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-pop-in origin-top"
                     onMouseDown={(e) => e.stopPropagation()}
                 >
-                    <div class="p-3 bg-gray-50 border-b border-gray-100">
-                        <span class="text-[10px] font-black text-texto-grey uppercase tracking-widest opacity-60">
+                    {/* Header */}
+                    <div class="p-4 bg-gradient-to-br from-primary/5 to-primary/10 border-b border-primary/20">
+                        <span class="text-[11px] font-black text-texto-dark uppercase tracking-widest flex items-center gap-2">
+                            <HugeiconsIcon icon={UserGroupIcon} size={14} className="text-primary" />
                             {activeDropdown.field === 'codigoResponsable' ? 'Seleccionar Líder' : 'Seleccionar Técnico'}
                         </span>
                     </div>
-                    <div class="max-h-[250px] overflow-y-auto scroll-premium">
+
+                    {/* Buscador */}
+                    <div class="p-3 border-b border-gray-100">
+                        <div class="relative">
+                            <HugeiconsIcon 
+                                icon={Search01Icon} 
+                                size={16} 
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-texto-grey opacity-50" 
+                            />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+                                placeholder="Buscar por nombre, apellido o código..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-2 border-transparent hover:border-primary/20 focus:border-primary/40 rounded-xl text-[12px] font-bold text-texto-dark transition-all focus:bg-white focus:ring-4 focus:ring-primary/5 outline-none placeholder:text-gray-400"
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+
+                    {/* Lista de Personal */}
+                    <div class="max-h-[280px] overflow-y-auto scroll-premium">
                         {(() => {
                             const list = activeDropdown.field === 'codigoResponsable' ? responsables : tecnicos;
                             if (list.length === 0) {
-                                return <div class="p-4 text-center text-[11px] text-texto-grey font-bold">Cargando personal...</div>;
+                                return <div class="p-6 text-center text-[11px] text-texto-grey font-bold">Cargando personal...</div>;
                             }
-                            return list.map(emp => (
+
+                            // Filtrar según término de búsqueda
+                            const filteredList = list.filter(emp => {
+                                const searchLower = searchTerm.toLowerCase().trim();
+                                if (!searchLower) return true;
+                                
+                                const nombreCompleto = `${emp.nombre} ${emp.apellido}`.toLowerCase();
+                                const codigo = emp.codigo.toLowerCase();
+                                const cargo = emp.cargo.toLowerCase();
+                                
+                                return nombreCompleto.includes(searchLower) || 
+                                       codigo.includes(searchLower) || 
+                                       cargo.includes(searchLower);
+                            });
+
+                            if (filteredList.length === 0) {
+                                return (
+                                    <div class="p-6 text-center">
+                                        <div class="text-[11px] text-texto-grey font-bold mb-1">No se encontraron resultados</div>
+                                        <div class="text-[10px] text-texto-grey opacity-60">Intenta con otro término de búsqueda</div>
+                                    </div>
+                                );
+                            }
+
+                            return filteredList.map(emp => (
                                 <button
                                     key={emp.codigo}
                                     onClick={() => handleSelectResponsable(activeDropdown.rowIds, activeDropdown.field, emp.codigo)}

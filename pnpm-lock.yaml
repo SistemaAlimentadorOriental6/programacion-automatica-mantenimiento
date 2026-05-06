@@ -11,6 +11,9 @@ importers:
       '@astrojs/preact':
         specifier: ^5.1.1
         version: 5.1.1(@babel/core@7.29.0)(jiti@2.6.1)(lightningcss@1.32.0)(preact@10.29.1)(rollup@4.60.2)
+      '@calendarjs/ce':
+        specifier: ^1.0.7
+        version: 1.0.7
       '@hugeicons/core-free-icons':
         specifier: ^4.1.1
         version: 4.1.1
@@ -150,6 +153,9 @@ packages:
   '@babel/types@7.29.0':
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
+
+  '@calendarjs/ce@1.0.7':
+    resolution: {integrity: sha512-5TS6xerRZCOJd7fO2ASDI+tSmrBWdAd09zxmYY/EraDgbF97aYLQ+LJ+378m56BX/kCUBMOQ2tRKCiOY3tXUlQ==}
 
   '@capsizecss/unpack@4.0.0':
     resolution: {integrity: sha512-VERIM64vtTP1C4mxQ5thVT9fK0apjPFobqybMtA1UdUujWka24ERHbRHFGmpbbhp73MhV+KSsHQH9C6uOTdEQA==}
@@ -1169,6 +1175,9 @@ packages:
   kolorist@1.8.0:
     resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
 
+  lemonadejs@5.3.6:
+    resolution: {integrity: sha512-GfmoZvCcnesiRsU9oC3OJDZ2VU+U4TsOJKD3A+rEV7dwm2IBO0xaBkLYtpgY3kcoFQjm7u5k9KSQXEtIkanjHQ==}
+
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
     engines: {node: '>= 12.0.0'}
@@ -2073,6 +2082,10 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
+
+  '@calendarjs/ce@1.0.7':
+    dependencies:
+      lemonadejs: 5.3.6
 
   '@capsizecss/unpack@4.0.0':
     dependencies:
@@ -3025,6 +3038,8 @@ snapshots:
   json5@2.2.3: {}
 
   kolorist@1.8.0: {}
+
+  lemonadejs@5.3.6: {}
 
   lightningcss-android-arm64@1.32.0:
     optional: true

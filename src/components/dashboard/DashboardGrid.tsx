@@ -13,7 +13,7 @@ import {
     Alert01Icon,
     Tick01Icon
 } from '@hugeicons/core-free-icons';
-import OperationsTable from '../tables/OperationsTable.tsx';
+
 import MiniTable from '../tables/MiniTable.tsx';
 import AsignacionTable from '../tables/AsignacionTable.tsx';
 
@@ -224,6 +224,7 @@ export default function DashboardGrid() {
     const [expanded, setExpanded] = useState<number | null>(null);
     const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
     const [assignments, setAssignments] = useState<Record<string, Record<string, any>>>({});
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
     // Estados para datos de las minitablas
     interface TareaData {
@@ -234,11 +235,16 @@ export default function DashboardGrid() {
         isPlaceholder?: boolean;
         frecuencia_tarea_ultima?: string;
         dato_hoy?: string;
+        taxonomia_4?: string;
     }
 
-    const [lubricacionData, setLubricacionData] = useState<TareaData[]>([]);
-    const [rawLubricacionData, setRawLubricacionData] = useState<TareaData[]>([]);
-    const [isLoadingLubricacion, setIsLoadingLubricacion] = useState(true);
+    const [lubricacionMotorData, setLubricacionMotorData] = useState<TareaData[]>([]);
+    const [rawLubricacionMotorData, setRawLubricacionMotorData] = useState<TareaData[]>([]);
+    const [isLoadingLubricacionMotor, setIsLoadingLubricacionMotor] = useState(true);
+
+    const [lubricacionChasisData, setLubricacionChasisData] = useState<TareaData[]>([]);
+    const [rawLubricacionChasisData, setRawLubricacionChasisData] = useState<TareaData[]>([]);
+    const [isLoadingLubricacionChasis, setIsLoadingLubricacionChasis] = useState(true);
     const [diagnosticoData, setDiagnosticoData] = useState<TareaData[]>([]);
     const [rawDiagnosticoData, setRawDiagnosticoData] = useState<TareaData[]>([]);
     const [isLoadingDiagnostico, setIsLoadingDiagnostico] = useState(true);
@@ -246,47 +252,113 @@ export default function DashboardGrid() {
     const [rawEngraseData, setRawEngraseData] = useState<TareaData[]>([]);
     const [isLoadingEngrase, setIsLoadingEngrase] = useState(true);
 
+    const priorityRef = useRef<'vencidas' | 'proximas' | 'ambas' | null>(null);
+    const busFilterRef = useRef<'todos' | 'pares' | 'impares'>('todos');
+    const excludedBusesRef = useRef<Set<string>>(new Set());
+
+    // Ref para restaurar selecciones por bus+tarea al navegar entre días
+    const pendingRestoreRef = useRef<Array<{bus: string, tarea: string, tablaIndex: number}> | null>(null);
+
     // Límites de selección por vehículo (no por tarea)
     const SELECTION_LIMITS = {
-        1: 12, // Lubricación
+        1: 12, // Lubricación Motor
         2: 15, // Engrase
-        3: 30  // Diagnóstico
+        3: 30, // Diagnóstico
+        4: 12  // Lubricación Chasis
     };
+
+    const [alertModal, setAlertModal] = useState<string | null>(null);
 
     // Estadísticas de selección
     const selectionStats = useMemo(() => {
-        const stats = { 1: new Set<string>(), 2: new Set<string>(), 3: new Set<string>() };
+        const stats = { 1: new Set<string>(), 2: new Set<string>(), 3: new Set<string>(), 4: new Set<string>() };
+        const buses = new Set<string>();
         selectedRows.forEach(key => {
             const [tIdx, fIdx] = key.split('-').map(Number);
-            const data = tIdx === 1 ? lubricacionData : tIdx === 2 ? engraseData : diagnosticoData;
+            const data = tIdx === 1 ? lubricacionMotorData : tIdx === 2 ? engraseData : tIdx === 3 ? diagnosticoData : lubricacionChasisData;
             if (data[fIdx] && !data[fIdx].isPlaceholder) {
-                stats[tIdx as 1|2|3].add(data[fIdx].bus);
+                stats[tIdx as 1|2|3|4].add(data[fIdx].bus);
+                buses.add(data[fIdx].bus);
             }
         });
-        return {
-            1: stats[1].size,
-            2: stats[2].size,
-            3: stats[3].size
+        
+        // La cuota compartida es la unión de los buses de Motor y Chasis
+        const lubricacionCombinada = new Set([...stats[1], ...stats[4]]);
+        
+        const tableBuses = {
+            1: Array.from(stats[1]),
+            2: Array.from(stats[2]),
+            3: Array.from(stats[3]),
+            4: Array.from(stats[4])
         };
-    }, [selectedRows, lubricacionData, engraseData, diagnosticoData]);
+        
+        return {
+            1: lubricacionCombinada.size,
+            2: stats[2].size,
+            3: stats[3].size,
+            4: lubricacionCombinada.size,
+            allBuses: Array.from(buses),
+            tableBuses
+        };
+    }, [selectedRows, lubricacionMotorData, engraseData, diagnosticoData, lubricacionChasisData]);
 
     useEffect(() => {
         const handleAgruparEvent = (e: Event) => {
             const detail = (e as CustomEvent).detail;
-            handleAgrupar(detail?.priority, detail?.busFilter);
+            const p = detail?.priority !== undefined ? detail.priority : priorityRef.current;
+            const bf = detail?.busFilter !== undefined ? detail.busFilter : busFilterRef.current;
+            if (detail?.excludedBuses) {
+                excludedBusesRef.current = new Set(detail.excludedBuses);
+            }
+            handleAgrupar(p, bf);
+        };
+        const handleLoadDay = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail) {
+                if (detail.excludedBuses) {
+                    excludedBusesRef.current = new Set(detail.excludedBuses);
+                }
+                // Restaurar assignments del día
+                if (detail.assignments) {
+                    setAssignments(detail.assignments);
+                }
+                // Guardar los identificadores bus+tarea para restaurar después del agrupado
+                if (detail.busTask && detail.busTask.length > 0) {
+                    pendingRestoreRef.current = detail.busTask;
+                } else {
+                    // Sin selección previa: limpiar el estado
+                    pendingRestoreRef.current = null;
+                    setSelectedRows(new Set());
+                }
+                // Re-agrupar — la restauración ocurre al final de handleAgrupar
+                handleAgrupar(priorityRef.current, busFilterRef.current);
+            }
         };
         const handleVistaCompleta = () => {
             setShowFullView(true);
         };
+        
+        const handleDateChanged = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail && detail.selectedDate) {
+                const newDate = new Date(detail.selectedDate);
+                setSelectedDate(newDate);
+                // Los assignments se restaurarán en handleLoadDay
+            }
+        };
 
         window.addEventListener('dashboard-agrupar', handleAgruparEvent);
+        window.addEventListener('dashboard-load-day', handleLoadDay);
         window.addEventListener('dashboard-vista-completa', handleVistaCompleta);
+        window.addEventListener('dashboard-date-changed', handleDateChanged);
 
         return () => {
             window.removeEventListener('dashboard-agrupar', handleAgruparEvent);
+            window.removeEventListener('dashboard-load-day', handleLoadDay);
             window.removeEventListener('dashboard-vista-completa', handleVistaCompleta);
+            window.removeEventListener('dashboard-date-changed', handleDateChanged);
         };
-    }, [lubricacionData, engraseData, diagnosticoData, rawLubricacionData, rawEngraseData, rawDiagnosticoData]);
+    }, [lubricacionMotorData, lubricacionChasisData, engraseData, diagnosticoData, rawLubricacionMotorData, rawLubricacionChasisData, rawEngraseData, rawDiagnosticoData]);
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
@@ -315,13 +387,18 @@ export default function DashboardGrid() {
                 return busFilter === 'pares' ? isEven : !isEven;
             };
 
-            const filterData = (data: TareaData[]) => (data || []).filter(d => isBusMatchFilter(d.bus));
+            const filterData = (data: TareaData[], tablaIndex: number) => (data || []).filter(d => {
+                if (excludedBusesRef.current.has(`${tablaIndex}-${d.bus}`)) return false;
+                return isBusMatchFilter(d.bus);
+            });
 
-            const currentLubData = filterData(rawLubricacionData);
-            const currentEngData = filterData(rawEngraseData);
-            const currentDiagData = filterData(rawDiagnosticoData);
+            const currentLubMotorData = filterData(rawLubricacionMotorData, 1);
+            const currentLubChasisData = filterData(rawLubricacionChasisData, 4);
+            const currentEngData = filterData(rawEngraseData, 2);
+            const currentDiagData = filterData(rawDiagnosticoData, 3);
 
-            const busesLub = new Set(currentLubData.map(d => d.bus));
+            const busesLubMotor = new Set(currentLubMotorData.map(d => d.bus));
+            const busesLubChasis = new Set(currentLubChasisData.map(d => d.bus));
             const busesEng = new Set(currentEngData.map(d => d.bus));
             const busesDiag = new Set(currentDiagData.map(d => d.bus));
 
@@ -329,7 +406,7 @@ export default function DashboardGrid() {
             const tablesCheckedForBus = new Map<string, Set<number>>();
             selectedRows.forEach(key => {
                 const [tIdx, fIdx] = key.split('-').map(Number);
-                const d = tIdx === 1 ? lubricacionData : tIdx === 2 ? engraseData : diagnosticoData;
+                const d = tIdx === 1 ? lubricacionMotorData : tIdx === 2 ? engraseData : tIdx === 3 ? diagnosticoData : lubricacionChasisData;
                 if (d[fIdx] && !d[fIdx].isPlaceholder) {
                     const bus = d[fIdx].bus;
                     if (!tablesCheckedForBus.has(bus)) tablesCheckedForBus.set(bus, new Set());
@@ -337,8 +414,8 @@ export default function DashboardGrid() {
                 }
             });
 
-            // Conteo de tareas por bus y tabla
-            const lubCounts = currentLubData.reduce((acc, d) => { acc[d.bus] = (acc[d.bus] || 0) + 1; return acc; }, {} as Record<string, number>);
+            const lubMotorCounts = currentLubMotorData.reduce((acc, d) => { acc[d.bus] = (acc[d.bus] || 0) + 1; return acc; }, {} as Record<string, number>);
+            const lubChasisCounts = currentLubChasisData.reduce((acc, d) => { acc[d.bus] = (acc[d.bus] || 0) + 1; return acc; }, {} as Record<string, number>);
             const engCounts = currentEngData.reduce((acc, d) => { acc[d.bus] = (acc[d.bus] || 0) + 1; return acc; }, {} as Record<string, number>);
             const diagCounts = currentDiagData.reduce((acc, d) => { acc[d.bus] = (acc[d.bus] || 0) + 1; return acc; }, {} as Record<string, number>);
 
@@ -380,22 +457,24 @@ export default function DashboardGrid() {
                     }
                 });
             };
-            buscarUrgencia(currentLubData);
+            buscarUrgencia(currentLubMotorData);
+            buscarUrgencia(currentLubChasisData);
             buscarUrgencia(currentEngData);
             buscarUrgencia(currentDiagData);
 
             // 2. Determinar todos los buses para habilitar el agrupamiento en MiniTable
-            const allBuses = new Set([...busesLub, ...busesEng, ...busesDiag]);
+            const allBuses = new Set([...busesLubMotor, ...busesLubChasis, ...busesEng, ...busesDiag]);
             setRepeatedBuses(allBuses);
 
             // 3. SELECCIÓN AUTOMÁTICA
             const tempSelected = new Set<string>();
-            const busesSeleccionadosPorTabla: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set() };
+            const busesSeleccionadosPorTabla: Record<number, Set<string>> = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
 
             const CUOTAS = {
-                1: 12,  // Lubricación (antes 10+2)
-                2: 15,  // Engrase (antes 10+5, aunque ya no auto-selecciona)
-                3: 30,  // Diagnóstico (antes 22+8)
+                1: 12,  // Lubricación Motor
+                2: 15,  // Engrase
+                3: 30,  // Diagnóstico
+                4: 12,  // Lubricación Chasis
             };
 
             const tareaCoincide = (d: any): boolean => {
@@ -409,7 +488,8 @@ export default function DashboardGrid() {
                 return esVencida || esProxima;
             };
 
-            const seleccionarPorCategoria = (lista: any[], tablaIdx: 1|2|3) => {
+            // Para Diagnóstico (y potencialmente otras con cuota independiente)
+            const seleccionarPorCategoria = (lista: any[], tablaIdx: 1|2|3|4) => {
                 const cuotaTotal = CUOTAS[tablaIdx];
                 const busTareas = new Map<string, { indices: number[]; scoreMax: number; cantidadTareas: number }>();
                 
@@ -434,21 +514,10 @@ export default function DashboardGrid() {
                     todosLosBuses.push([bus, entrada]);
                 });
 
-                const sortPorCantidad = (a: typeof todosLosBuses[0], b: typeof todosLosBuses[0]) => {
-                    if (b[1].cantidadTareas !== a[1].cantidadTareas) return b[1].cantidadTareas - a[1].cantidadTareas;
-                    return b[1].scoreMax - a[1].scoreMax;
-                };
-
-                const sortPorUrgencia = (a: typeof todosLosBuses[0], b: typeof todosLosBuses[0]) => {
+                todosLosBuses.sort((a, b) => {
                     if (b[1].scoreMax !== a[1].scoreMax) return b[1].scoreMax - a[1].scoreMax;
                     return b[1].cantidadTareas - a[1].cantidadTareas;
-                };
-
-                if (tablaIdx === 3) {
-                    todosLosBuses.sort(sortPorUrgencia);
-                } else {
-                    todosLosBuses.sort(sortPorCantidad);
-                }
+                });
 
                 const setBuses = busesSeleccionadosPorTabla[tablaIdx];
                 const marcarBus = (bus: string, entrada: { indices: number[]; scoreMax: number }) => {
@@ -456,19 +525,55 @@ export default function DashboardGrid() {
                     entrada.indices.forEach(i => tempSelected.add(`${tablaIdx}-${i}`));
                 };
 
-                // Tomar exactamente los primeros buses hasta llenar la cuota total
                 const seleccionados = todosLosBuses.slice(0, cuotaTotal);
                 seleccionados.forEach(([bus, entrada]) => marcarBus(bus, entrada));
             };
 
-            // Ejecutar selección en Lubricación y Diagnóstico sobre los datos limpios
-            seleccionarPorCategoria(currentLubData, 1);
+            // Para Motor: límite de 12 vehículos por urgencia. Chasis no selecciona nada automáticamente.
+            const seleccionarMotor = () => {
+                const cuotaLub = 12;
+                const busTareasLub = new Map<string, { scoreMax: number; cantidadTareas: number }>();
+                
+                currentLubMotorData.forEach(d => {
+                    if (d.isPlaceholder || !tareaCoincide(d)) return;
+                    const freq = parseNumber(d.frecuencia_tarea_ultima);
+                    const hoy  = parseNumber(d.dato_hoy);
+                    const score = freq > 0 ? hoy / freq : 0;
+                    if (!busTareasLub.has(d.bus)) {
+                        busTareasLub.set(d.bus, { scoreMax: 0, cantidadTareas: 0 });
+                    }
+                    const entrada = busTareasLub.get(d.bus)!;
+                    entrada.cantidadTareas++;
+                    if (score > entrada.scoreMax) entrada.scoreMax = score;
+                });
+                
+                const todosLosBusesLub: [string, { scoreMax: number; cantidadTareas: number }][] = [];
+                busTareasLub.forEach((entrada, bus) => todosLosBusesLub.push([bus, entrada]));
+                
+                // Ordenado por urgencia (vencidas), no por cantidad
+                todosLosBusesLub.sort((a, b) => {
+                    if (b[1].scoreMax !== a[1].scoreMax) return b[1].scoreMax - a[1].scoreMax;
+                    return b[1].cantidadTareas - a[1].cantidadTareas;
+                });
+                
+                const seleccionadosLub = new Set(todosLosBusesLub.slice(0, cuotaLub).map(x => x[0]));
+                
+                currentLubMotorData.forEach((d, i) => {
+                    if (seleccionadosLub.has(d.bus) && !d.isPlaceholder && tareaCoincide(d)) {
+                        busesSeleccionadosPorTabla[1].add(d.bus);
+                        tempSelected.add(`1-${i}`);
+                    }
+                });
+            };
+
+            // Ejecutar selección
+            seleccionarMotor();
             seleccionarPorCategoria(currentDiagData, 3);
 
             // 4. ORDENAR CADA TABLA DE MANERA INDEPENDIENTE
             const ordenarTablaIndependiente = (
                 sourceData: any[],
-                tablaIdx: 1|2|3,
+                tablaIdx: 1|2|3|4,
                 criterioOrden: 'vencidas' | 'cantidad' = 'cantidad'
             ) => {
                 const rawData = sourceData.filter(d => {
@@ -544,44 +649,63 @@ export default function DashboardGrid() {
                 return resultado;
             };
 
-            const finalSortedLub  = ordenarTablaIndependiente(currentLubData, 1, 'cantidad');
+            const finalSortedLubMotor  = ordenarTablaIndependiente(currentLubMotorData, 1, 'vencidas');
+            const finalSortedLubChasis  = ordenarTablaIndependiente(currentLubChasisData, 4, 'vencidas');
             const finalSortedEng  = ordenarTablaIndependiente(currentEngData, 2, 'vencidas');
             const finalSortedDiag = ordenarTablaIndependiente(currentDiagData, 3, 'vencidas');
 
-            setLubricacionData(finalSortedLub);
+            setLubricacionMotorData(finalSortedLubMotor);
+            setLubricacionChasisData(finalSortedLubChasis);
             setEngraseData(finalSortedEng);
             setDiagnosticoData(finalSortedDiag);
 
-            // 7. Reconstruir la selección final adaptando los índices a las nuevas listas
-            const finalSelected = new Set<string>();
-            const reconstruirSeleccion = (lista: any[], tablaIdx: 1|2|3) => {
-                const setBuses = busesSeleccionadosPorTabla[tablaIdx];
-                lista.forEach((d, i) => {
-                    if (d.isPlaceholder || !setBuses.has(d.bus)) return;
-                    
-                    if (priority) {
-                        const est = d.estado?.toLowerCase() || '';
-                        const esVencida = est.includes('vencida');
-                        const esProxima = est.includes('proximo') || est.includes('proxima');
-                        
-                        let coincide = false;
-                        if (priority === 'vencidas' && esVencida) coincide = true;
-                        else if (priority === 'proximas' && esProxima) coincide = true;
-                        else if (priority === 'ambas' && (esVencida || esProxima)) coincide = true;
-                        
-                        if (!coincide) return;
-                    }
-                    finalSelected.add(`${tablaIdx}-${i}`);
-                });
-            };
+            // 7. Determinar la selección final
+            let finalSelected = new Set<string>();
 
-            reconstruirSeleccion(finalSortedLub, 1);
-            reconstruirSeleccion(finalSortedEng, 2);
-            reconstruirSeleccion(finalSortedDiag, 3);
-            
+            if (pendingRestoreRef.current && pendingRestoreRef.current.length > 0) {
+                // MODO RESTAURACIÓN: venimos de un cambio de día, mapear bus+tarea → índices posicionales
+                const toRestore = pendingRestoreRef.current;
+                pendingRestoreRef.current = null;
+
+                const buscarEnLista = (lista: any[], tablaIdx: 1|2|3|4) => {
+                    lista.forEach((d, i) => {
+                        if (d.isPlaceholder) return;
+                        const match = toRestore.find(r => r.bus === d.bus && r.tarea === d.tarea && r.tablaIndex === tablaIdx);
+                        if (match) finalSelected.add(`${tablaIdx}-${i}`);
+                    });
+                };
+                buscarEnLista(finalSortedLubMotor, 1);
+                buscarEnLista(finalSortedLubChasis, 4);
+                buscarEnLista(finalSortedEng, 2);
+                buscarEnLista(finalSortedDiag, 3);
+            } else {
+                // MODO AGRUPACIÓN NORMAL: reconstruir selección a partir de los buses auto-seleccionados
+                const reconstruirSeleccion = (lista: any[], tablaIdx: 1|2|3|4) => {
+                    const setBuses = busesSeleccionadosPorTabla[tablaIdx];
+                    lista.forEach((d, i) => {
+                        if (d.isPlaceholder || !setBuses.has(d.bus)) return;
+                        if (priority) {
+                            const est = d.estado?.toLowerCase() || '';
+                            const esVencida = est.includes('vencida');
+                            const esProxima = est.includes('proximo') || est.includes('proxima');
+                            let coincide = false;
+                            if (priority === 'vencidas' && esVencida) coincide = true;
+                            else if (priority === 'proximas' && esProxima) coincide = true;
+                            else if (priority === 'ambas' && (esVencida || esProxima)) coincide = true;
+                            if (!coincide) return;
+                        }
+                        finalSelected.add(`${tablaIdx}-${i}`);
+                    });
+                };
+                reconstruirSeleccion(finalSortedLubMotor, 1);
+                reconstruirSeleccion(finalSortedLubChasis, 4);
+                reconstruirSeleccion(finalSortedEng, 2);
+                reconstruirSeleccion(finalSortedDiag, 3);
+            }
+
             setIsExiting(false);
             setSelectedRows(finalSelected);
-            
+
             setIsExiting(true);
             setTimeout(() => {
                 setIsProcessing(false);
@@ -592,7 +716,8 @@ export default function DashboardGrid() {
 
             window.dispatchEvent(new CustomEvent('dashboard-grouped', {
                 detail: {
-                    lubricacion: finalSortedLub,
+                    lubricacionMotor: finalSortedLubMotor,
+                    lubricacionChasis: finalSortedLubChasis,
                     engrase: finalSortedEng,
                     diagnostico: finalSortedDiag,
                     busesRepetidos: busesOrdenadosParaExcel,
@@ -617,13 +742,18 @@ export default function DashboardGrid() {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setLubricacionData(data || []);
-                    setRawLubricacionData(data || []);
+                    const motorData = (data || []).filter((d: any) => (d.taxonomia_4 || '').toUpperCase().includes('MOTOR'));
+                    const chasisData = (data || []).filter((d: any) => !(d.taxonomia_4 || '').toUpperCase().includes('MOTOR'));
+                    setLubricacionMotorData(motorData);
+                    setRawLubricacionMotorData(motorData);
+                    setLubricacionChasisData(chasisData);
+                    setRawLubricacionChasisData(chasisData);
                 }
             } catch (err) {
                 console.error("Error al cargar lubricación:", err);
             } finally {
-                setIsLoadingLubricacion(false);
+                setIsLoadingLubricacionMotor(false);
+                setIsLoadingLubricacionChasis(false);
             }
         };
 
@@ -666,8 +796,7 @@ export default function DashboardGrid() {
         fetchEngrase();
 
         return () => {
-            window.removeEventListener('dashboard-agrupar', listener);
-            window.removeEventListener('dashboard-vista-completa', vistaListener);
+            // Cleanup omitted
         };
     }, []);
 
@@ -677,7 +806,7 @@ export default function DashboardGrid() {
     };
 
     const handleRowClick = (tablaIndex: number, filaIndex: number, toggleAll: boolean = false, busName?: string) => {
-        const data = tablaIndex === 1 ? lubricacionData : tablaIndex === 2 ? engraseData : diagnosticoData;
+        const data = tablaIndex === 1 ? lubricacionMotorData : tablaIndex === 2 ? engraseData : tablaIndex === 3 ? diagnosticoData : lubricacionChasisData;
         const item = data[filaIndex];
         if (!item || item.isPlaceholder) return;
 
@@ -700,15 +829,23 @@ export default function DashboardGrid() {
                 const currentSelectedBuses = new Set<string>();
                 newSelected.forEach(k => {
                     const [tIdx, fIdx] = k.split('-').map(Number);
-                    if (tIdx === tablaIndex) {
-                        const d = tIdx === 1 ? lubricacionData : tIdx === 2 ? engraseData : diagnosticoData;
+                    if (tablaIndex === 1 || tablaIndex === 4) {
+                        if (tIdx === 1) {
+                            const d = lubricacionMotorData;
+                            if (d[fIdx] && !d[fIdx].isPlaceholder) currentSelectedBuses.add(d[fIdx].bus);
+                        } else if (tIdx === 4) {
+                            const d = lubricacionChasisData;
+                            if (d[fIdx] && !d[fIdx].isPlaceholder) currentSelectedBuses.add(d[fIdx].bus);
+                        }
+                    } else if (tIdx === tablaIndex) {
+                        const d = tIdx === 2 ? engraseData : diagnosticoData;
                         if (d[fIdx] && !d[fIdx].isPlaceholder) currentSelectedBuses.add(d[fIdx].bus);
                     }
                 });
 
-                const limit = SELECTION_LIMITS[tablaIndex as 1|2|3];
+                const limit = SELECTION_LIMITS[tablaIndex as 1|2|3|4];
                 if (!currentSelectedBuses.has(targetBus) && currentSelectedBuses.size >= limit) {
-                    alert(`⚠️ Límite excedido: Solo puedes seleccionar tareas de hasta ${limit} vehículos en esta categoría.`);
+                    setAlertModal(`Límite excedido: Solo puedes seleccionar tareas de hasta ${limit} vehículos en esta categoría.`);
                     return;
                 }
                 // Agregar todas
@@ -724,15 +861,23 @@ export default function DashboardGrid() {
                 const currentSelectedBuses = new Set<string>();
                 newSelected.forEach(k => {
                     const [tIdx, fIdx] = k.split('-').map(Number);
-                    if (tIdx === tablaIndex) {
-                        const d = tIdx === 1 ? lubricacionData : tIdx === 2 ? engraseData : diagnosticoData;
+                    if (tablaIndex === 1 || tablaIndex === 4) {
+                        if (tIdx === 1) {
+                            const d = lubricacionMotorData;
+                            if (d[fIdx] && !d[fIdx].isPlaceholder) currentSelectedBuses.add(d[fIdx].bus);
+                        } else if (tIdx === 4) {
+                            const d = lubricacionChasisData;
+                            if (d[fIdx] && !d[fIdx].isPlaceholder) currentSelectedBuses.add(d[fIdx].bus);
+                        }
+                    } else if (tIdx === tablaIndex) {
+                        const d = tIdx === 2 ? engraseData : diagnosticoData;
                         if (d[fIdx] && !d[fIdx].isPlaceholder) currentSelectedBuses.add(d[fIdx].bus);
                     }
                 });
 
-                const limit = SELECTION_LIMITS[tablaIndex as 1|2|3];
+                const limit = SELECTION_LIMITS[tablaIndex as 1|2|3|4];
                 if (!currentSelectedBuses.has(item.bus) && currentSelectedBuses.size >= limit) {
-                    alert(`⚠️ Límite excedido: Solo puedes seleccionar tareas de hasta ${limit} vehículos en esta categoría.`);
+                    setAlertModal(`Límite excedido: Solo puedes seleccionar tareas de hasta ${limit} vehículos en esta categoría.`);
                     return;
                 }
                 newSelected.add(key);
@@ -740,42 +885,88 @@ export default function DashboardGrid() {
         }
 
         setSelectedRows(newSelected);
-        window.dispatchEvent(new CustomEvent('dashboard-selection-changed', { detail: { selectedRows: newSelected } }));
     };
 
+    useEffect(() => {
+        // Construir identificadores bus+tarea para persistencia entre días
+        const buildBusTask = () => {
+            const result: Array<{bus: string, tarea: string, tablaIndex: number}> = [];
+            selectedRows.forEach(key => {
+                const [tIdx, fIdx] = key.split('-').map(Number);
+                let data: any[] = [];
+                if (tIdx === 1) data = lubricacionMotorData;
+                else if (tIdx === 2) data = engraseData;
+                else if (tIdx === 3) data = diagnosticoData;
+                else if (tIdx === 4) data = lubricacionChasisData;
+                const item = data[fIdx];
+                if (item && !item.isPlaceholder && item.tarea) {
+                    result.push({ bus: item.bus, tarea: item.tarea, tablaIndex: tIdx });
+                }
+            });
+            return result;
+        };
+
+        window.dispatchEvent(new CustomEvent('dashboard-selection-changed', {
+            detail: { 
+                selectedRows,
+                selectedBuses: selectionStats.allBuses,
+                tableBuses: selectionStats.tableBuses,
+                busTask: buildBusTask()
+            }
+        }));
+    }, [selectedRows, selectionStats.allBuses, lubricacionMotorData, engraseData, diagnosticoData, lubricacionChasisData]);
+
     const handleRowDoubleClick = (tablaIndex: number, filaIndex: number) => {
-        const data1 = lubricacionData;
+        const data1 = lubricacionMotorData;
         const data2 = engraseData;
         const data3 = diagnosticoData;
+        const data4 = lubricacionChasisData;
         
-        // Doble click intenta agregar el bus en las 3 tablas si hay espacio
+        // Doble click intenta agregar el bus en las 4 tablas si hay espacio
         const newSelected = new Set(selectedRows);
         
         const tablas = [
             { id: 1, d: data1 },
             { id: 2, d: data2 },
-            { id: 3, d: data3 }
+            { id: 3, d: data3 },
+            { id: 4, d: data4 }
         ];
 
         tablas.forEach(({ id, d }) => {
-            const item = d[filaIndex];
-            if (!item || item.isPlaceholder) return;
+            const item = d[filaIndex]; // Cuidado, filaIndex solo es válido para tablaIndex actual
+            // Necesitamos buscar el bus en la tabla iterada
+            let originItem;
+            if (id === tablaIndex) originItem = d[filaIndex];
+            else {
+                // buscar el mismo bus en esta otra tabla
+                const baseData = tablaIndex === 1 ? data1 : tablaIndex === 2 ? data2 : tablaIndex === 3 ? data3 : data4;
+                const busName = baseData[filaIndex]?.bus;
+                originItem = d.find(x => x.bus === busName && !x.isPlaceholder);
+            }
+
+            if (!originItem) return;
 
             // Verificar si el bus ya está seleccionado en esta tabla o si cabe
             const currentSelectedBuses = new Set<string>();
             newSelected.forEach(k => {
                 const [tIdx, fIdx] = k.split('-').map(Number);
-                if (tIdx === id) {
-                    const data = tIdx === 1 ? data1 : tIdx === 2 ? data2 : data3;
+                if (id === 1 || id === 4) {
+                    if (tIdx === 1) {
+                        if (data1[fIdx] && !data1[fIdx].isPlaceholder) currentSelectedBuses.add(data1[fIdx].bus);
+                    } else if (tIdx === 4) {
+                        if (data4[fIdx] && !data4[fIdx].isPlaceholder) currentSelectedBuses.add(data4[fIdx].bus);
+                    }
+                } else if (tIdx === id) {
+                    const data = tIdx === 2 ? data2 : data3;
                     if (data[fIdx] && !data[fIdx].isPlaceholder) currentSelectedBuses.add(data[fIdx].bus);
                 }
             });
 
-            const limit = SELECTION_LIMITS[id as 1|2|3];
-            if (currentSelectedBuses.has(item.bus) || currentSelectedBuses.size < limit) {
+            const limit = SELECTION_LIMITS[id as 1|2|3|4];
+            if (currentSelectedBuses.has(originItem.bus) || currentSelectedBuses.size < limit) {
                 // Agregar todas las tareas de este bus en esta tabla
                 d.forEach((rd, ri) => {
-                    if (rd.bus === item.bus && !rd.isPlaceholder) {
+                    if (rd.bus === originItem.bus && !rd.isPlaceholder) {
                         newSelected.add(`${id}-${ri}`);
                     }
                 });
@@ -790,9 +981,10 @@ export default function DashboardGrid() {
     const selectedData = useMemo(() => Array.from(selectedRows).map(key => {
         const [tIndex, fIndex] = key.split('-').map(Number);
         let dataItem, gestion;
-        if (tIndex === 1) { dataItem = lubricacionData[fIndex]; gestion = 'Lubricación'; }
+        if (tIndex === 1) { dataItem = lubricacionMotorData[fIndex]; gestion = 'Lubricación Motor'; }
         else if (tIndex === 2) { dataItem = engraseData[fIndex]; gestion = 'Engrase'; }
         else if (tIndex === 3) { dataItem = diagnosticoData[fIndex]; gestion = 'Diagnóstico'; }
+        else if (tIndex === 4) { dataItem = lubricacionChasisData[fIndex]; gestion = 'Lubricación Chasis'; }
 
         return {
             id: key,
@@ -801,7 +993,7 @@ export default function DashboardGrid() {
             gestion: gestion || '',
             tarea_abierta_posterior: dataItem?.tarea_abierta_posterior
         };
-    }), [selectedRows, lubricacionData, engraseData, diagnosticoData]);
+    }), [selectedRows, lubricacionMotorData, lubricacionChasisData, engraseData, diagnosticoData]);
 
     const handleAssignmentChange = (rowId: string, field: string, value: any) => {
         setAssignments(prev => {
@@ -956,23 +1148,10 @@ export default function DashboardGrid() {
             {/* Grid Principal */}
             <div class="flex flex-col lg:flex-row gap-5 items-stretch min-h-[500px]">
                 {[
-                    {
-                        component: <OperationsTable />,
-                        title: 'Gestión Operativa',
-                    },
+
                     {
                         component: (() => {
-                            // 1. Contar cuántas veces aparece cada tarea específica por bus
-                            const tareaCounts = (lubricacionData || []).reduce((acc, curr) => {
-                                const key = `${curr.bus}-${curr.tarea}`;
-                                acc[key] = (acc[key] || 0) + 1;
-                                return acc;
-                            }, {} as Record<string, number>);
-
-                            // 2. Usar los datos tal cual vienen del estado (ya procesados y limpios)
-                            // El orden ya viene correcto desde handleAgrupar — no re-ordenar aquí
-                            // porque los índices de selectedRows apuntan a este mismo arreglo
-                            const displayData = (lubricacionData || []).map(item => ({
+                            const displayData = (lubricacionMotorData || []).map(item => ({
                                 ...item,
                                 isPlaceholder: item.isPlaceholder,
                                 cantidad: item.cantidad,
@@ -981,13 +1160,13 @@ export default function DashboardGrid() {
 
                             return (
                                 <MiniTable
-                                    title={`Lubricación (${selectionStats[1]}/${SELECTION_LIMITS[1]})`}
+                                    title={`Lubricación Motor (${selectionStats[1]}/${SELECTION_LIMITS[1]})`}
                                     icon={DropletIcon}
                                     accentColor="#4cc253"
                                     data={displayData}
                                     showCantidad={true}
                                     tablaIndex={1}
-                                    isLoading={isLoadingLubricacion}
+                                    isLoading={isLoadingLubricacionMotor}
                                     groupedBuses={repeatedBuses}
                                     selectedRows={selectedRows}
                                     onRowClick={handleRowClick}
@@ -995,7 +1174,34 @@ export default function DashboardGrid() {
                                 />
                             );
                         })(),
-                        title: 'Lubricación',
+                        title: 'Lubricación Motor',
+                    },
+                    {
+                        component: (() => {
+                            const displayData = (lubricacionChasisData || []).map(item => ({
+                                ...item,
+                                isPlaceholder: item.isPlaceholder,
+                                cantidad: item.cantidad,
+                                busTotal: item.busTotal
+                            }));
+
+                            return (
+                                <MiniTable
+                                    title={`Lubricación Chasis (${selectionStats[4]}/${SELECTION_LIMITS[4]})`}
+                                    icon={DropletIcon}
+                                    accentColor="#4cc253"
+                                    data={displayData}
+                                    showCantidad={true}
+                                    tablaIndex={4}
+                                    isLoading={isLoadingLubricacionChasis}
+                                    groupedBuses={repeatedBuses}
+                                    selectedRows={selectedRows}
+                                    onRowClick={handleRowClick}
+                                    onRowDoubleClick={handleRowDoubleClick}
+                                />
+                            );
+                        })(),
+                        title: 'Lubricación Chasis',
                     },
                     {
                         component: (() => {
@@ -1087,6 +1293,7 @@ export default function DashboardGrid() {
                         onAssign={handleAssignmentChange}
                         onAssignMulti={handleAssignmentMultiChange}
                         onAssignAll={handleAssignmentAll}
+                        selectedDate={selectedDate}
                     />
                 </div>
             )}
@@ -1173,18 +1380,31 @@ export default function DashboardGrid() {
                                     .map(([bus]) => bus);
 
                                 return (
-                                    <div class="grid grid-cols-3 gap-6">
-                                        {/* Lubricación */}
+                                    <div class="grid grid-cols-4 gap-6">
+                                        {/* Lubricación Motor */}
                                         <FullViewColumn
                                             icon={DropletIcon}
-                                            title="Lubricación"
-                                            data={lubricacionData}
+                                            title="Lubricación Motor"
+                                            data={lubricacionMotorData}
                                             accentColor="#4cc253"
                                             allBusesOrdered={sortedBuses}
                                             filteredBuses={repeatedBuses}
                                             selectedRows={selectedRows}
                                             onRowClick={handleRowClick}
                                             tablaIndex={1}
+                                        />
+
+                                        {/* Lubricación Chasis */}
+                                        <FullViewColumn
+                                            icon={DropletIcon}
+                                            title="Lubricación Chasis"
+                                            data={lubricacionChasisData}
+                                            accentColor="#4cc253"
+                                            allBusesOrdered={sortedBuses}
+                                            filteredBuses={repeatedBuses}
+                                            selectedRows={selectedRows}
+                                            onRowClick={handleRowClick}
+                                            tablaIndex={4}
                                         />
 
                                         {/* Engrase */}
@@ -1224,6 +1444,38 @@ export default function DashboardGrid() {
                                 class="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:shadow-lg hover:shadow-primary/30 transition-all duration-200"
                             >
                                 Cerrar Vista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal de Alerta de Límites */}
+            {alertModal && (
+                <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div 
+                        class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div class="p-8 flex flex-col items-center text-center">
+                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                                <HugeiconsIcon icon={Alert01Icon} size={32} className="text-red-500" />
+                            </div>
+                            
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">
+                                Límite de Cupo
+                            </h3>
+                            
+                            <p class="text-sm text-gray-500 leading-relaxed">
+                                {alertModal}
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-gray-50 flex gap-3">
+                            <button
+                                onClick={() => setAlertModal(null)}
+                                class="flex-1 py-3 px-4 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95"
+                            >
+                                Entendido
                             </button>
                         </div>
                     </div>

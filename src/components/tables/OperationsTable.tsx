@@ -113,8 +113,7 @@ export default function OperationsTable() {
         <div class={`bg-white rounded-[32px] shadow-premium border border-gray-100 overflow-hidden flex flex-col h-full animate-fade-in relative ${isModalOpen ? 'z-[9999]' : 'z-0'}`}>
             {/* Header */}
             <div class="p-5 border-b border-gray-50">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-texto-dark leading-tight">Operaciones Hoy</h3>
+                <div class="flex items-center justify-end mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                         <span class="text-[10px] font-bold text-primary uppercase tracking-widest">En Vivo</span>
