@@ -389,6 +389,8 @@ export default function DashboardGrid() {
 
             const filterData = (data: TareaData[], tablaIndex: number) => (data || []).filter(d => {
                 if (excludedBusesRef.current.has(`${tablaIndex}-${d.bus}`)) return false;
+                // El filtro de bus (todos/pares/impares) solo aplica a Engrase (2) y Diagnóstico (3)
+                if (tablaIndex === 1 || tablaIndex === 4) return true;
                 return isBusMatchFilter(d.bus);
             });
 
