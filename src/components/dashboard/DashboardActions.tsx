@@ -923,8 +923,9 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 <>
                     <button
                         onClick={() => handleAction('agrupar')}
-                        disabled={dates.length > 0 && !dates[currentDateIndex]}
-                        class="relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden bg-primary text-white hover:shadow-lg hover:shadow-primary/30 active:scale-95 disabled:opacity-50 ml-auto"
+                        disabled={dates.length === 0}
+                        title={dates.length === 0 ? "Selecciona un rango de fechas primero" : "Agrupar"}
+                        class="relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden bg-primary text-white hover:shadow-lg hover:shadow-primary/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
                     >
                         <div class="flex items-center gap-2">
                             <HugeiconsIcon icon={Layers01Icon} size={18} />
