@@ -12,7 +12,8 @@ import {
     Calendar02Icon,
     ZapIcon,
     FilterIcon,
-    ArrowRight01Icon
+    ArrowRight01Icon,
+    Cancel01Icon
 } from '@hugeicons/core-free-icons';
 import * as XLSX from 'xlsx';
 import MiniCalendarPicker from './MiniCalendarPicker';
@@ -61,6 +62,8 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     const [dailyAssignments, setDailyAssignments] = useState<Record<number, { busTask: Array<{bus: string, tarea: string, tablaIndex: number}>, data: any, assignments?: Record<string, any> }>>({}); 
     // Buses comprometidos por día: SOLO se actualiza al presionar "Siguiente Día"
     const [committedBuses, setCommittedBuses] = useState<Record<number, string[]>>({});
+    // Fechas excluidas (marcadas con X por el usuario)
+    const [excludedDates, setExcludedDates] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         const handleGrouped = (e: Event) => {
@@ -218,6 +221,8 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         // Iterar por cada día que tenga datos
         Object.keys(allDays).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dayKey => {
             const dayIdx = parseInt(dayKey);
+            if (excludedDates[dayIdx]) return; // Skip excluded days
+            
             const { busTask, data, assignments: dayAssignments = {} } = allDays[dayIdx];
             if (!data || !busTask || busTask.length === 0) return;
 
@@ -489,7 +494,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         const committed = committedOverride || committedBuses;
         const excludedBuses: string[] = [];
         for (let i = 0; i < index; i++) {
-            if (committed[i]) {
+            if (committed[i] && !excludedDates[i]) { // No contar buses comprometidos de días excluidos
                 excludedBuses.push(...committed[i]);
             }
         }
@@ -529,6 +534,36 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         }
     };
 
+    const handleRightClickDate = (e: MouseEvent, index: number) => {
+        e.preventDefault();
+        
+        setExcludedDates(prev => {
+            const next = { ...prev, [index]: !prev[index] };
+            
+            // Si acabamos de excluir el día en el que estamos parados, 
+            // movernos automáticamente al siguiente día disponible
+            if (next[index] && index === currentDateIndex) {
+                let nextIndex = index + 1;
+                while (nextIndex < dates.length && next[nextIndex]) {
+                    nextIndex++;
+                }
+                if (nextIndex < dates.length) {
+                    setTimeout(() => goToDay(nextIndex), 0);
+                } else {
+                    let prevIndex = index - 1;
+                    while (prevIndex >= 0 && next[prevIndex]) {
+                        prevIndex--;
+                    }
+                    if (prevIndex >= 0) {
+                        setTimeout(() => goToDay(prevIndex), 0);
+                    }
+                }
+            }
+            
+            return next;
+        });
+    };
+
     const nextDay = () => {
         if (!checkQuotas()) return;
 
@@ -551,8 +586,18 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             };
             setDailyAssignments(newDaily);
 
-            // Pasar newCommitted directamente para que goToDay use los buses correctos
-            goToDay(currentDateIndex + 1, true, newCommitted);
+            // Buscar el próximo día que no esté excluido
+            let nextIndex = currentDateIndex + 1;
+            while (nextIndex < dates.length && excludedDates[nextIndex]) {
+                nextIndex++;
+            }
+
+            if (nextIndex < dates.length) {
+                // Pasar newCommitted directamente para que goToDay use los buses correctos
+                goToDay(nextIndex, true, newCommitted);
+            } else {
+                alert('Has llegado al último día no excluido de la planeación.');
+            }
         } else {
             alert('Has llegado al último día de la planeación.');
         }
@@ -710,6 +755,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                     <HugeiconsIcon icon={Calendar03Icon} size={16} className="text-primary" />
                     <div class="flex gap-1 overflow-x-auto max-w-[300px] sm:max-w-none no-scrollbar">
                         {dates.map((d, i) => {
+                            const isExcluded = excludedDates[i];
                             const esActivo = i === currentDateIndex;
                             const esCompletado = !!committedBuses[i] && committedBuses[i].length > 0;
                             const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -717,19 +763,25 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                             return (
                                 <button 
                                     key={i}
-                                    onClick={() => goToDay(i)}
-                                    class={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-200 border ${
-                                        esActivo
-                                            ? 'bg-primary text-white shadow-md border-primary scale-105 z-10'
-                                            : esCompletado
-                                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                                : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100'
+                                    onClick={() => !isExcluded && goToDay(i)}
+                                    onContextMenu={(e) => handleRightClickDate(e, i)}
+                                    class={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-200 border relative ${
+                                        isExcluded 
+                                            ? 'bg-red-50 text-red-400 border-red-200 line-through opacity-70 hover:opacity-100 cursor-not-allowed'
+                                            : esActivo
+                                                ? 'bg-primary text-white shadow-md border-primary scale-105 z-10'
+                                                : esCompletado
+                                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 cursor-pointer'
+                                                    : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100 cursor-pointer'
                                     }`}
+                                    title={isExcluded ? "Día excluido (Click derecho para incluir)" : "Click derecho para excluir este día"}
                                 >
                                     <div class="flex items-center gap-1.5">
-                                        {esCompletado && !esActivo && (
+                                        {isExcluded ? (
+                                            <HugeiconsIcon icon={Cancel01Icon} size={12} className="text-red-500" />
+                                        ) : esCompletado && !esActivo ? (
                                             <HugeiconsIcon icon={Tick02Icon} size={10} />
-                                        )}
+                                        ) : null}
                                         <span>{label}</span>
                                     </div>
                                 </button>
@@ -797,25 +849,76 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             )}
 
             {hasGrouped ? (
-                <>
-                    {renderButton('reagrupar', 'Volver a Agrupar', RefreshIcon)}
-                    {renderButton('vistaCompleta', 'Ver Vista Completa', ViewIcon)}
-                    
-                    {/* Si estamos planeando múltiples días y aún no es el último día, mostramos Siguiente Día */}
-                    {dates.length > 0 && currentDateIndex < dates.length - 1 ? (
-                        <button
-                            onClick={nextDay}
-                            class="relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden bg-green-500 text-white hover:bg-green-600 hover:shadow-lg hover:shadow-green-500/30 active:scale-95 ml-auto"
-                        >
-                            <div class="flex items-center gap-2">
-                                <span>Siguiente Día</span>
-                                <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
-                            </div>
-                        </button>
-                    ) : (
-                        renderButton('generar', 'Generar Vista', PlayIcon)
-                    )}
-                </>
+                (() => {
+                    // Check if we are on the last valid (not excluded) day
+                    let isLastValidDay = true;
+                    if (dates.length > 0) {
+                        for (let i = currentDateIndex + 1; i < dates.length; i++) {
+                            if (!excludedDates[i]) {
+                                isLastValidDay = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        isLastValidDay = false;
+                    }
+
+                    return (
+                        <>
+                            {renderButton('reagrupar', 'Volver a Agrupar', RefreshIcon)}
+                            
+                            {dates.length > 0 ? (
+                                isLastValidDay ? (
+                                    <button
+                                        onClick={async () => {
+                                            // Guardar el estado actual antes de generar el Excel
+                                            const updatedDaily = {
+                                                ...dailyAssignments,
+                                                [currentDateIndex]: {
+                                                    busTask: [...selectedBusTaskRef.current],
+                                                    data: datosAgrupados.current,
+                                                    assignments: { ...assignmentsRef.current }
+                                                }
+                                            };
+                                            setDailyAssignments(updatedDaily);
+                                            
+                                            // Dar tiempo a que el estado se actualice antes de generar
+                                            setTimeout(() => handleAction('generar'), 0);
+                                        }}
+                                        disabled={!!loading}
+                                        class={`relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden ml-auto ${success === 'generar'
+                                            ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
+                                            : 'bg-primary text-white hover:shadow-lg hover:shadow-primary/30 active:scale-95'
+                                        }`}
+                                    >
+                                        <div class="flex items-center gap-2 relative z-10">
+                                            {loading === 'generar' ? (
+                                                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            ) : success === 'generar' ? (
+                                                <HugeiconsIcon icon={Tick02Icon} size={18} />
+                                            ) : (
+                                                <HugeiconsIcon icon={PlayIcon} size={18} />
+                                            )}
+                                            <span>Generar Vista</span>
+                                        </div>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={nextDay}
+                                        class="relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden bg-green-500 text-white hover:bg-green-600 hover:shadow-lg hover:shadow-green-500/30 active:scale-95 ml-auto"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <span>Siguiente Día</span>
+                                            <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                                        </div>
+                                    </button>
+                                )
+                            ) : (
+                                renderButton('generar', 'Generar Vista', PlayIcon)
+                            )}
+                        </>
+                    );
+                })()
             ) : (
                 <>
                     <button
