@@ -12,7 +12,7 @@ interface MiniTableProps {
     tablaIndex?: number;
     isLoading?: boolean;
     groupedBuses?: Set<string>;
-    onRowClick?: (tablaIndex: number, filaIndex: number, toggleAll?: boolean, busName?: string) => void;
+    onRowClick?: (tablaIndex: number, filaIndex: number, toggleAll?: boolean, busName?: string, deselectBelow?: boolean) => void;
     onRowDoubleClick?: (tablaIndex: number, filaIndex: number) => void;
 }
 
@@ -245,6 +245,10 @@ export default function MiniTable({
                         sel ? 'bg-primary/[0.09]' : 'bg-primary/[0.04] hover:bg-primary/[0.07]'
                     }`}
                     onClick={() => onRowClick?.(tablaIndex, realIndex, true, item.bus)}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        onRowClick?.(tablaIndex, realIndex, true, item.bus, true);
+                    }}
                 >
                     {/* Check circular */}
                     <div class={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
@@ -368,6 +372,10 @@ export default function MiniTable({
             <div
                 key={realIndex}
                 onClick={() => onRowClick?.(tablaIndex, realIndex, false)}
+                onContextMenu={(e) => {
+                    e.preventDefault();
+                    onRowClick?.(tablaIndex, realIndex, false, undefined, true);
+                }}
                 onDblClick={() => onRowDoubleClick?.(tablaIndex, realIndex)}
                 class={`grid grid-cols-[32px_1fr] gap-x-2 items-center rounded-2xl px-3 py-3.5 cursor-pointer transition-all duration-300 select-none ${
                     sel ? 'bg-primary/[0.07] ring-1 ring-primary/20' : 'hover:bg-gray-50'

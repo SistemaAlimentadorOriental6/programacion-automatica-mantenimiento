@@ -36,6 +36,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     const [hasGrouped, setHasGrouped] = useState<boolean>(false);
     const [priority, setPriority] = useState<'vencidas' | 'proximas' | 'ambas' | null>(null);
     const [busFilter, setBusFilter] = useState<'todos' | 'pares' | 'impares'>('todos');
+    const [typeFilter, setTypeFilter] = useState<'todos' | 'RUNNER' | 'AGRALE' | 'NPR'>('todos');
 
     // Estados para planeación multi-día
     const [dates, setDates] = useState<Date[]>([]);
@@ -55,11 +56,11 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     const selectedRowsRef = useRef<Set<string>>(new Set());
     const selectedBusesRef = useRef<string[]>([]);
     const selectedTableBusesRef = useRef<string[]>([]);
-    const selectedBusTaskRef = useRef<Array<{bus: string, tarea: string, tablaIndex: number}>>([]);
-    const assignmentsRef = useRef<Record<string, any>>({}); 
-    
+    const selectedBusTaskRef = useRef<Array<{ bus: string, tarea: string, tablaIndex: number }>>([]);
+    const assignmentsRef = useRef<Record<string, any>>({});
+
     // Almacén maestro: snapshot para restaurar selecciones al navegar entre días
-    const [dailyAssignments, setDailyAssignments] = useState<Record<number, { busTask: Array<{bus: string, tarea: string, tablaIndex: number}>, data: any, assignments?: Record<string, any> }>>({}); 
+    const [dailyAssignments, setDailyAssignments] = useState<Record<number, { busTask: Array<{ bus: string, tarea: string, tablaIndex: number }>, data: any, assignments?: Record<string, any> }>>({});
     // Buses comprometidos por día: SOLO se actualiza al presionar "Siguiente Día"
     const [committedBuses, setCommittedBuses] = useState<Record<number, string[]>>({});
     // Fechas excluidas (marcadas con X por el usuario)
@@ -103,6 +104,28 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             }
         };
 
+        const handleDateChanged = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail && detail.selectedDate) {
+                // GUARDAR filtros del día que estamos dejando
+                setDailyAssignments(prev => ({
+                    ...prev,
+                    [currentDateIndex]: {
+                        ...prev[currentDateIndex],
+                        busFilter: busFilter,
+                        typeFilter: typeFilter
+                    }
+                }));
+
+                // RESTAURAR filtros del nuevo día (o defaults si es nuevo)
+                const nextDay = dailyAssignments[detail.index];
+                setBusFilter(nextDay?.busFilter as any || 'todos');
+                setTypeFilter(nextDay?.typeFilter as any || 'todos');
+
+                setCurrentDateIndex(detail.index);
+            }
+        };
+
         const handleAssignmentsChanged = (e: Event) => {
             const detail = (e as CustomEvent).detail;
             if (detail?.assignments) {
@@ -113,15 +136,24 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         window.addEventListener('dashboard-grouped', handleGrouped);
         window.addEventListener('dashboard-reset', handleReset);
         window.addEventListener('dashboard-selection-changed', handleSelectionChanged);
+        window.addEventListener('dashboard-date-changed', handleDateChanged);
         window.addEventListener('dashboard-assignments-changed', handleAssignmentsChanged);
 
         return () => {
             window.removeEventListener('dashboard-grouped', handleGrouped);
             window.removeEventListener('dashboard-reset', handleReset);
             window.removeEventListener('dashboard-selection-changed', handleSelectionChanged);
+            window.removeEventListener('dashboard-date-changed', handleDateChanged);
             window.removeEventListener('dashboard-assignments-changed', handleAssignmentsChanged);
         };
-    }, []);
+    }, [currentDateIndex, busFilter, typeFilter, dailyAssignments]);
+
+    // Reactividad: Re-agrupar automáticamente al cambiar filtros
+    useEffect(() => {
+        if (hasGrouped) {
+            handleAction('reagrupar');
+        }
+    }, [busFilter, typeFilter, priority]);
 
     const generarExcel = async () => {
         // Verificar que hay datos en al menos el día actual o en algún día guardado
@@ -203,175 +235,190 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 return;
             }
 
-        // --- RECOPILACIÓN DE TODA LA PLANEACIÓN (TODOS LOS DÍAS) ---
-        // Combinar el snapshot guardado en dailyAssignments con el día actual
-        const allDays: Record<number, { busTask: Array<{bus: string, tarea: string, tablaIndex: number}>, data: any, assignments?: Record<string, any> }> = {
-            ...dailyAssignments,
-            [currentDateIndex]: {
-                busTask: [...selectedBusTaskRef.current],
-                data: datosAgrupados.current,
-                assignments: { ...assignmentsRef.current }
-            }
-        };
-
-        const filas: any[] = [];
-        let idSolicitud = 1;
-        let tareaGlobalIndex = 0;
-
-        // Iterar por cada día que tenga datos
-        Object.keys(allDays).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dayKey => {
-            const dayIdx = parseInt(dayKey);
-            if (excludedDates[dayIdx]) return; // Skip excluded days
-            
-            const { busTask, data, assignments: dayAssignments = {} } = allDays[dayIdx];
-            if (!data || !busTask || busTask.length === 0) return;
-
-            let tareaIndexDia = 0;
-
-            const { lubricacionMotor, lubricacionChasis, engrase, diagnostico } = data;
-            const fechaPlan = dates[dayIdx] || new Date();
-
-            // Formateador de fecha/hora para este día específico
-            const formatFechaInicioLocal = (indice: number) => {
-                const totalMinutesRange = 460;
-                const minutesOffset = (indice * 10) % (totalMinutesRange + 1);
-                const startHour = 21;
-                const currentTotalMinutes = (startHour * 60 + minutesOffset) % (24 * 60);
-                const h = Math.floor(currentTotalMinutes / 60);
-                const m = currentTotalMinutes % 60;
-
-                // Si la hora es < 21, significa que ya es el día siguiente (madrugada)
-                const d = new Date(fechaPlan);
-                if (h < 21) d.setDate(d.getDate() + 1);
-
-                const padLocal = (n: number) => n.toString().padStart(2, '0');
-                return `${d.getFullYear()}-${padLocal(d.getMonth() + 1)}-${padLocal(d.getDate())} ${padLocal(h)}:${padLocal(m)}:00`;
+            // --- RECOPILACIÓN DE TODA LA PLANEACIÓN (TODOS LOS DÍAS) ---
+            // Combinar el snapshot guardado en dailyAssignments con el día actual
+            const allDays: Record<number, { busTask: Array<{ bus: string, tarea: string, tablaIndex: number }>, data: any, assignments?: Record<string, any> }> = {
+                ...dailyAssignments,
+                [currentDateIndex]: {
+                    busTask: [...selectedBusTaskRef.current],
+                    data: datosAgrupados.current,
+                    assignments: { ...assignmentsRef.current }
+                }
             };
 
-            // Agrupar por bus usando busTask
-            const tareasPorBusYTabla: Record<string, { 1: TareaData[]; 2: TareaData[]; 3: TareaData[]; 4: TareaData[] }> = {};
-            busTask.forEach(bt => {
-                let lista: any[] = [];
-                if (bt.tablaIndex === 1) lista = lubricacionMotor;
-                else if (bt.tablaIndex === 2) lista = engrase;
-                else if (bt.tablaIndex === 3) lista = diagnostico;
-                else if (bt.tablaIndex === 4) lista = lubricacionChasis;
+            const filas: any[] = [];
+            let idSolicitud = 1;
+            let tareaGlobalIndex = 0;
 
-                const idx = lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
-                if (idx === -1) return;
-                const item = lista[idx];
-                if (!item || item.isPlaceholder) return;
-                
-                // Construir rowId igual que en DashboardGrid: ${tablaIndex}-${filaIndex}
-                const rowId = `${bt.tablaIndex}-${idx}`;
-                
-                if (!tareasPorBusYTabla[item.bus]) {
-                    tareasPorBusYTabla[item.bus] = { 1: [], 2: [], 3: [], 4: [] };
-                }
-                tareasPorBusYTabla[item.bus][bt.tablaIndex as 1|2|3|4].push({ ...item, _rowId: rowId } as any);
-            });
+            // Iterar por cada día que tenga datos
+            Object.keys(allDays).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dayKey => {
+                const dayIdx = parseInt(dayKey);
+                if (excludedDates[dayIdx]) return; // Skip excluded days
 
-            // Ordenar buses del día
-            const busesOrdenados = Object.keys(tareasPorBusYTabla).sort((a, b) => a.localeCompare(b));
+                const { busTask, data, assignments: dayAssignments = {} } = allDays[dayIdx];
+                if (!data || !busTask || busTask.length === 0) return;
 
-            busesOrdenados.forEach(bus => {
-                const porTabla = tareasPorBusYTabla[bus];
-                const todasLasTareas = [
-                    ...porTabla[1], ...porTabla[2], ...porTabla[3], ...porTabla[4]
-                ];
+                let tareaIndexDia = 0;
 
-                todasLasTareas.forEach((t) => {
-                    const idAdmon = extraerID((t as any).tarea_abierta_posterior);
-                    const parteInfo = idAdmon ? partesMap[idAdmon] : null;
-                    const taxonomiaFull = parteInfo?.taxonomia_encadenada ?? '';
-                    const taxonomias = taxonomiaFull.split('|').map((txt: string) => txt.trim());
+                const { lubricacionMotor, lubricacionChasis, engrase, diagnostico } = data;
+                const fechaPlan = dates[dayIdx] || new Date();
 
-                    // Obtener las modificaciones del usuario para esta tarea
-                    const rowId = (t as any)._rowId;
-                    const userAssignment = (rowId && dayAssignments[rowId]) ? dayAssignments[rowId] : {};
+                // Formateador de fecha/hora para este día específico
+                const formatFechaInicioLocal = (indice: number) => {
+                    const totalMinutesRange = 460;
+                    const minutesOffset = (indice * 10) % (totalMinutesRange + 1);
+                    const startHour = 21;
+                    const currentTotalMinutes = (startHour * 60 + minutesOffset) % (24 * 60);
+                    const h = Math.floor(currentTotalMinutes / 60);
+                    const m = currentTotalMinutes % 60;
 
-                    // Helper: usar valor del usuario si existe, sino el de la BD
-                    const getValue = (userVal: any, dbVal: any) => {
-                        return (userVal !== undefined && userVal !== null && userVal !== '') ? userVal : dbVal;
-                    };
+                    // Si la hora es < 21, significa que ya es el día siguiente (madrugada)
+                    const d = new Date(fechaPlan);
+                    if (h < 21) d.setDate(d.getDate() + 1);
 
-                    const filaBase: any = {
-                        'ID SOLICITUD TRABAJO': idSolicitud,
-                        'CODIGO': bus,
-                        'PARTE': parteInfo?.parte ?? '',
-                        'TAREA': t.tarea,
-                        'FECHA PROPUESTA': parteInfo?.fecha_propuesta ?? '',
-                        'FECHA INICIO': getValue(userAssignment.fechaInicio, formatFechaInicioLocal(tareaIndexDia)),
-                        'NOMBRE DIA': formatDay(dates[dayIdx]).split(' ')[1] || '',
-                        'MES FECHA INICIO': (dates[dayIdx].getMonth() + 1),
-                        'DIA FECHA INICIO': dates[dayIdx].getDate(),
-                        'MODO DETECCION': parteInfo?.modo_deteccion ?? '',
-                        'CODIGO PRIORIDAD': getValue(userAssignment.codigoPrioridad, (parteInfo?.prioridad?.toString() || '').charAt(0) || '1'),
-                        'CODIGO SUBPROCESO': getValue(userAssignment.codigoSubproceso, 'PREVEN'),
-                        'CODIGO ZONA MAQUINA': getValue(userAssignment.codigoZonaMaquina, parteInfo?.zona_maquina ?? ''),
-                        'CODIGO CAUSA BASICA': getValue(userAssignment.codigoCausaBasica, parteInfo?.causa_basica ?? ''),
-                        'CODIGO RESPONSABLE': getValue(userAssignment.codigoResponsable, parteInfo?.codigo_responsable ?? ''),
-                        'TIEMPO CARACTERIZACION': parteInfo?.tiempo_caracterizacion ?? '',
-                        'TIEMPO DESPLAZAMIENTO': parteInfo?.tiempo_desplazamiento ?? '',
-                        'TIEMPO PLANEACION': parteInfo?.tiempo_planeacion ?? '',
-                        'TIEMPO CIERRE': parteInfo?.tiempo_cierre ?? '',
-                        'OBSERVACION': getValue(userAssignment.observacion, parteInfo?.observacion ?? ''),
-                        'CODIGO ESTADO': getValue(userAssignment.codigoEstado, 'PRE'),
-                        'FRECUENCIA': t.frecuencia_tarea_ultima || '',
-                        'FRECUENCIA CARACTERIZADA': parteInfo?.frecuencia_caracterizada ?? '',
-                        'IDENTIFICACION EMPLEADO': getValue(userAssignment.codigoEmpleado, parteInfo?.identificacion_empleado ?? ''),
-                        'CODIGO EMPLEADO': parteInfo?.empleado ?? '',
-                        'AGRUPACION TAREA': parteInfo?.agrupacion_tarea ?? '',
-                        'TIPO POLITICA': parteInfo?.tipo_politica ?? '',
-                        'POLITICA': parteInfo?.politica ?? '',
-                        'VALOR VARIABLE': getValue(userAssignment.valorVariable, parteInfo?.valor_variable ?? ''),
-                        'NRO REVISION': parteInfo?.nro_revision ?? '',
-                        'NRO NOVEDAD': parteInfo?.numero_novedad ?? '',
-                        'NOVEDAD': parteInfo?.novedad ?? '',
-                        'EMPLEADO REPORTA NOVEDAD': parteInfo?.empleado_reporta_novedad ?? '',
-                        'OBSERVACION NOVEDAD': parteInfo?.observacion_novedad ?? '',
-                        'MOTIVO CAUSA PARADA': parteInfo?.motivo_causa_parada ?? '',
-                        'DURACION': (parteInfo?.duracion ?? '0').split('.')[0],
-                        'PORCENTAJE DURACION': parteInfo?.porcentaje_duracion ?? '',
-                        'USUARIO CREADOR': parteInfo?.usuario_creador ?? '',
-                        'ID TAREA SOLICITADA': parteInfo?.id_tarea_solicitada ?? '',
-                        'FECHA SOLICITUD NOVEDAD': parteInfo?.fecha_solicitud_novedad ?? '',
-                        'REFERENCIA INTELIGENTE PARTE': parteInfo?.referencia_inteligente ?? '',
-                        'VALOR MIN VARIABLE': parteInfo?.valor_min_variable ?? '',
-                        'ESTADO OPERATIVIDAD': 'VEHICULO EN MANTENIMIENTO PREVENTIVO'
-                    };
+                    const padLocal = (n: number) => n.toString().padStart(2, '0');
+                    return `${d.getFullYear()}-${padLocal(d.getMonth() + 1)}-${padLocal(d.getDate())} ${padLocal(h)}:${padLocal(m)}:00`;
+                };
 
-                    for (let i = 1; i <= 9; i++) {
-                        filaBase[`TAXONOMIA-${i}`] = taxonomias[i - 1] || '';
+                // Agrupar por bus usando busTask
+                const tareasPorBusYTabla: Record<string, { 1: TareaData[]; 2: TareaData[]; 3: TareaData[]; 4: TareaData[] }> = {};
+                busTask.forEach(bt => {
+                    let lista: any[] = [];
+                    if (bt.tablaIndex === 1) lista = lubricacionMotor;
+                    else if (bt.tablaIndex === 2) lista = engrase;
+                    else if (bt.tablaIndex === 3) lista = diagnostico;
+                    else if (bt.tablaIndex === 4) lista = lubricacionChasis;
+
+                    const idx = lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+                    if (idx === -1) return;
+                    const item = lista[idx];
+                    if (!item || item.isPlaceholder) return;
+
+                    // Construir rowId igual que en DashboardGrid: ${tablaIndex}-${filaIndex}
+                    const rowId = `${bt.tablaIndex}-${idx}`;
+
+                    if (!tareasPorBusYTabla[item.bus]) {
+                        tareasPorBusYTabla[item.bus] = { 1: [], 2: [], 3: [], 4: [] };
                     }
-
-                    filas.push(filaBase);
-                    tareaGlobalIndex++;
-                    tareaIndexDia++;
+                    tareasPorBusYTabla[item.bus][bt.tablaIndex as 1 | 2 | 3 | 4].push({ ...item, _rowId: rowId } as any);
                 });
-                idSolicitud++;
-            });
-        });
 
-        if (filas.length === 0) {
-            alert('No hay datos seleccionados en ningún día.');
-            return;
-        }
+                // Ordenar buses del día
+                const busesOrdenados = Object.keys(tareasPorBusYTabla).sort((a, b) => a.localeCompare(b));
+
+                busesOrdenados.forEach(bus => {
+                    const porTabla = tareasPorBusYTabla[bus];
+                    const todasLasTareas = [
+                        ...porTabla[1], ...porTabla[2], ...porTabla[3], ...porTabla[4]
+                    ];
+
+                    todasLasTareas.forEach((t) => {
+                        const idAdmon = extraerID((t as any).tarea_abierta_posterior);
+                        const parteInfo = idAdmon ? partesMap[idAdmon] : null;
+                        const taxonomiaFull = parteInfo?.taxonomia_encadenada ?? '';
+                        const taxonomias = taxonomiaFull.split('|').map((txt: string) => txt.trim());
+
+                        // Obtener las modificaciones del usuario para esta tarea
+                        const rowId = (t as any)._rowId;
+                        const userAssignment = (rowId && dayAssignments[rowId]) ? dayAssignments[rowId] : {};
+
+                        // Helper: usar valor del usuario si existe, sino el de la BD
+                        const getValue = (userVal: any, dbVal: any) => {
+                            return (userVal !== undefined && userVal !== null && userVal !== '') ? userVal : dbVal;
+                        };
+
+                        const fechaInicioStr = getValue(userAssignment.fechaInicio, formatFechaInicioLocal(tareaIndexDia));
+                        const matchPrioridad = (parteInfo?.prioridad?.toString() || '').match(/\d+/g);
+                        const diasPrioridad = (matchPrioridad && matchPrioridad.length >= 2) ? parseInt(matchPrioridad[1], 10) : 0;
+
+                        let fechaRequerida = '';
+                        if (fechaInicioStr) {
+                            const d = new Date(fechaInicioStr.replace(' ', 'T'));
+                            if (!isNaN(d.getTime())) {
+                                d.setDate(d.getDate() + diasPrioridad);
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                fechaRequerida = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+                            }
+                        }
+
+                        const filaBase: any = {
+                            'ID SOLICITUD TRABAJO': idSolicitud,
+                            'CODIGO': bus,
+                            'PARTE': parteInfo?.parte ?? '',
+                            'TAREA': t.tarea,
+                            'FECHA PROPUESTA': parteInfo?.fecha_propuesta ?? '',
+                            'FECHA INICIO (COLUMNA EDITABLE)': fechaInicioStr,
+                            'NOMBRE DIA': formatDay(dates[dayIdx]).split(' ')[1] || '',
+                            'FECHA REQUERIDA': fechaRequerida,
+                            'MES FECHA INICIO': (dates[dayIdx].getMonth() + 1),
+                            'DIA FECHA INICIO': dates[dayIdx].getDate(),
+                            'MODO DETECCION': parteInfo?.modo_deteccion ?? '',
+                            'CODIGO PRIORIDAD (COLUMNA EDITABLE)': getValue(userAssignment.codigoPrioridad, (parteInfo?.prioridad?.toString() || '').charAt(0) || '1'),
+                            'CODIGO SUBPROCESO (COLUMNA EDITABLE)': getValue(userAssignment.codigoSubproceso, 'PREVEN'),
+                            'CODIGO ZONA MAQUINA (COLUMNA EDITABLE)': getValue(userAssignment.codigoZonaMaquina, parteInfo?.zona_maquina ?? ''),
+                            'CODIGO CAUSA BASICA (COLUMNA EDITABLE)': getValue(userAssignment.codigoCausaBasica, parteInfo?.causa_basica ?? ''),
+                            'CODIGO RESPONSABLE (COLUMNA EDITABLE)': getValue(userAssignment.codigoResponsable, parteInfo?.codigo_responsable ?? ''),
+                            'IDENTIFICACION EMPLEADO': getValue(userAssignment.codigoEmpleado, parteInfo?.identificacion_empleado ?? ''),
+                            'CODIGO EMPLEADO (COLUMNA EDITABLE)': parteInfo?.empleado ?? '',
+                            'TIEMPO CARACTERIZACION': parteInfo?.tiempo_caracterizacion ?? '',
+                            'TIEMPO DESPLAZAMIENTO': parteInfo?.tiempo_desplazamiento ?? '',
+                            'TIEMPO PLANEACION': parteInfo?.tiempo_planeacion ?? '',
+                            'TIEMPO CIERRE': parteInfo?.tiempo_cierre ?? '',
+                            'OBSERVACION (COLUMNA EDITABLE)': getValue(userAssignment.observacion, parteInfo?.observacion ?? ''),
+                            'CODIGO ESTADO (COLUMNA EDITABLE)': 'PLA',
+                            'FRECUENCIA': parteInfo?.frecuencia || t.frecuencia_tarea_ultima || '',
+                            'FRECUENCIA CARACTERIZADA': parteInfo?.frecuencia_caracterizada ?? '',
+                            'AGRUPACION TAREA': parteInfo?.agrupacion_tarea ?? '',
+                            'TIPO POLITICA': parteInfo?.tipo_politica ?? '',
+                            'POLITICA': parteInfo?.politica ?? '',
+                            'VALOR VARIABLE (COLUMNA EDITABLE)': getValue(userAssignment.valorVariable, parteInfo?.valor_variable ?? ''),
+                            'NRO REVISION': parteInfo?.nro_revision ?? '',
+                            'NRO NOVEDAD': parteInfo?.numero_novedad ?? '',
+                            'NOVEDAD': parteInfo?.novedad ?? '',
+                            'EMPLEADO REPORTA NOVEDAD': parteInfo?.empleado_reporta_novedad ?? '',
+                            'OBSERVACION NOVEDAD': parteInfo?.observacion_novedad ?? '',
+                            'MOTIVO CAUSA PARADA': parteInfo?.motivo_causa_parada ?? '',
+                            'DURACION': (parteInfo?.duracion ?? '0').split('.')[0],
+                            'PORCENTAJE DURACION': parteInfo?.porcentaje_duracion ?? '',
+                            'USUARIO CREADOR': parteInfo?.usuario_creador ?? '',
+                            'ID TAREA SOLICITADA': parteInfo?.id_tarea_solicitada ?? '',
+                            'FECHA SOLICITUD NOVEDAD': parteInfo?.fecha_solicitud_novedad ?? '',
+                            'REFERENCIA INTELIGENTE PARTE': parteInfo?.referencia_inteligente ?? '',
+                            'VALOR MIN VARIABLE': parteInfo?.valor_min_variable ?? '',
+                            'ESTADO OPERATIVIDAD': 'VEHICULO EN MANTENIMIENTO PREVENTIVO'
+                        };
+
+                        for (let i = 1; i <= 9; i++) {
+                            filaBase[`TAXONOMIA-${i}`] = taxonomias[i - 1] || '';
+                        }
+
+                        filas.push(filaBase);
+                        tareaGlobalIndex++;
+                        tareaIndexDia++;
+                    });
+                    idSolicitud++;
+                });
+            });
+
+            if (filas.length === 0) {
+                alert('No hay datos seleccionados en ningún día.');
+                return;
+            }
 
             // --- USO DEL WEB WORKER PARA GENERAR EL EXCEL ---
             const worker = new Worker(new URL('../../workers/excelWorker.ts', import.meta.url), { type: 'module' });
 
             const header = [
                 'ID SOLICITUD TRABAJO', 'CODIGO', 'PARTE', 'TAREA',
-                'FECHA PROPUESTA', 'FECHA INICIO', 'NOMBRE DIA', 'MES FECHA INICIO',
-                'DIA FECHA INICIO', 'MODO DETECCION', 'CODIGO PRIORIDAD',
-                'CODIGO SUBPROCESO', 'CODIGO ZONA MAQUINA', 'CODIGO CAUSA BASICA',
-                'CODIGO RESPONSABLE', 'IDENTIFICACION EMPLEADO', 'CODIGO EMPLEADO',
+                'FECHA PROPUESTA', 'FECHA INICIO (COLUMNA EDITABLE)', 'NOMBRE DIA', 'FECHA REQUERIDA', 'MES FECHA INICIO',
+                'DIA FECHA INICIO', 'MODO DETECCION', 'CODIGO PRIORIDAD (COLUMNA EDITABLE)',
+                'CODIGO SUBPROCESO (COLUMNA EDITABLE)', 'CODIGO ZONA MAQUINA (COLUMNA EDITABLE)', 'CODIGO CAUSA BASICA (COLUMNA EDITABLE)',
+                'CODIGO RESPONSABLE (COLUMNA EDITABLE)', 'IDENTIFICACION EMPLEADO', 'CODIGO EMPLEADO (COLUMNA EDITABLE)',
                 'TIEMPO CARACTERIZACION', 'TIEMPO DESPLAZAMIENTO',
-                'TIEMPO PLANEACION', 'TIEMPO CIERRE', 'OBSERVACION',
-                'CODIGO ESTADO', 'FRECUENCIA', 'FRECUENCIA CARACTERIZADA',
+                'TIEMPO PLANEACION', 'TIEMPO CIERRE', 'OBSERVACION (COLUMNA EDITABLE)',
+                'CODIGO ESTADO (COLUMNA EDITABLE)', 'FRECUENCIA', 'FRECUENCIA CARACTERIZADA',
                 'AGRUPACION TAREA', 'TIPO POLITICA', 'POLITICA',
-                'VALOR VARIABLE', 'NRO REVISION', 'NRO NOVEDAD',
+                'VALOR VARIABLE (COLUMNA EDITABLE)', 'NRO REVISION', 'NRO NOVEDAD',
                 'NOVEDAD', 'EMPLEADO REPORTA NOVEDAD', 'OBSERVACION NOVEDAD',
                 'MOTIVO CAUSA PARADA', 'DURACION', 'PORCENTAJE DURACION',
                 'USUARIO CREADOR', 'ID TAREA SOLICITADA', 'FECHA SOLICITUD NOVEDAD',
@@ -384,7 +431,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
             const columnWidths = [
                 { wch: 22 }, { wch: 12 }, { wch: 40 }, { wch: 50 },
-                { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, { wch: 18 },
+                { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 },
                 { wch: 30 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
                 { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
                 { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
@@ -430,7 +477,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         if (!datosAgrupados.current) return false;
         const selected = selectedRowsRef.current;
         const stats = { motor: new Set<string>(), chasis: new Set<string>(), engrase: new Set<string>(), diagnostico: new Set<string>() };
-        
+
         selected.forEach(key => {
             const [tIdx, fIdx] = key.split('-').map(Number);
             // El backend envía lubricacionMotor y lubricacionChasis en el evento
@@ -444,20 +491,18 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             }
         });
 
-        const lubricacionCombinada = new Set([...stats.motor, ...stats.chasis]).size;
-        const engraseTotal = stats.engrase.size;
-        const diagTotal = stats.diagnostico.size;
+        let totalSeleccionados = 0;
+        selected.forEach(key => {
+            const [tIdx, fIdx] = key.split('-').map(Number);
+            const { lubricacionMotor, lubricacionChasis, engrase, diagnostico } = datosAgrupados.current as any;
+            const data = tIdx === 1 ? lubricacionMotor : tIdx === 2 ? engrase : tIdx === 3 ? diagnostico : lubricacionChasis;
+            if (data && data[fIdx] && !data[fIdx].isPlaceholder) {
+                totalSeleccionados++;
+            }
+        });
 
-        if (lubricacionCombinada < 1) {
-            setQuotaAlert("Faltan vehículos en Lubricación. Debes tener al menos 1 vehículo para poder avanzar.");
-            return false;
-        }
-        if (engraseTotal < 1) {
-            setQuotaAlert("Faltan vehículos en Engrase. Debes tener al menos 1 vehículo para poder avanzar.");
-            return false;
-        }
-        if (diagTotal < 1) {
-            setQuotaAlert("Faltan vehículos en Diagnóstico. Debes tener al menos 1 vehículo para poder avanzar.");
+        if (totalSeleccionados < 1) {
+            setQuotaAlert("Debes seleccionar al menos 1 vehículo en cualquier tabla para poder avanzar.");
             return false;
         }
         return true;
@@ -484,7 +529,9 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 [currentDateIndex]: {
                     busTask: [...selectedBusTaskRef.current],
                     data: datosAgrupados.current,
-                    assignments: { ...assignmentsRef.current }
+                    assignments: { ...assignmentsRef.current },
+                    busFilter: busFilter,
+                    typeFilter: typeFilter
                 }
             };
             setDailyAssignments(updatedDaily);
@@ -500,7 +547,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         }
 
         // 3. Recuperar snapshot del día destino
-        const targetSnap = dailyAssignments[index] || { busTask: [], data: null, assignments: {} };
+        const targetSnap = dailyAssignments[index] || { busTask: [], data: null, assignments: {}, busFilter: 'todos', typeFilter: 'todos' };
 
         // 4. CRÍTICO: Actualizar assignmentsRef.current para sincronizar con el día destino
         // Esto evita que los datos del día anterior se guarden en el siguiente
@@ -508,13 +555,13 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
         // 5. Cambiar de día y disparar carga
         setCurrentDateIndex(index);
-        
+
         // Emitir evento con la fecha seleccionada
         const selectedDate = dates[index] || new Date();
         window.dispatchEvent(new CustomEvent('dashboard-date-changed', {
-            detail: { selectedDate }
+            detail: { selectedDate, index }
         }));
-        
+
         window.dispatchEvent(new CustomEvent('dashboard-load-day', {
             detail: {
                 busTask: targetSnap.busTask || [],
@@ -536,10 +583,10 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
     const handleRightClickDate = (e: MouseEvent, index: number) => {
         e.preventDefault();
-        
+
         setExcludedDates(prev => {
             const next = { ...prev, [index]: !prev[index] };
-            
+
             // Si acabamos de excluir el día en el que estamos parados, 
             // movernos automáticamente al siguiente día disponible
             if (next[index] && index === currentDateIndex) {
@@ -559,7 +606,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                     }
                 }
             }
-            
+
             return next;
         });
     };
@@ -581,7 +628,9 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 [currentDateIndex]: {
                     busTask: [...selectedBusTaskRef.current],
                     data: datosAgrupados.current,
-                    assignments: { ...assignmentsRef.current }
+                    assignments: { ...assignmentsRef.current },
+                    busFilter: busFilter,
+                    typeFilter: typeFilter
                 }
             };
             setDailyAssignments(newDaily);
@@ -623,11 +672,11 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
         setDailyAssignments({});
         setCommittedBuses({});
         setShowCalendar(false);
-        
+
         // Emitir evento con la primera fecha seleccionada
         if (newDates.length > 0) {
             window.dispatchEvent(new CustomEvent('dashboard-date-changed', {
-                detail: { selectedDate: newDates[0] }
+                detail: { selectedDate: newDates[0], index: 0 }
             }));
         }
     };
@@ -642,24 +691,20 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     const handleAction = async (action: string) => {
         if (loading) return;
 
-        if (action === 'agrupar') {
+        if (action === 'agrupar' || action === 'reagrupar') {
+            const currentDayState = dailyAssignments[currentDateIndex];
+            const activeBusFilter = action === 'reagrupar' ? busFilter : (currentDayState?.busFilter || busFilter);
+            const activeTypeFilter = action === 'reagrupar' ? typeFilter : (currentDayState?.typeFilter || typeFilter);
+
             window.dispatchEvent(new CustomEvent('dashboard-agrupar', {
                 detail: {
                     priority,
-                    busFilter,
+                    busFilter: activeBusFilter,
+                    typeFilter: activeTypeFilter,
                     excludedBuses: getExcludedBuses(currentDateIndex)
                 }
             }));
             return;
-        } else if (action === 'reagrupar') {
-            window.dispatchEvent(new CustomEvent('dashboard-agrupar', { 
-                detail: { 
-                    priority, 
-                    busFilter,
-                    excludedBuses: getExcludedBuses(currentDateIndex)
-                } 
-            }));
-
         } else if (action === 'generar') {
             setLoading(action);
             setSuccess(null);
@@ -733,14 +778,14 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                         <HugeiconsIcon icon={Calendar03Icon} size={14} className="text-texto-grey" />
                         <span class="text-[10px] font-black text-texto-grey uppercase tracking-widest">Planear Fechas</span>
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={() => setShowCalendar(!showCalendar)}
                         class="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-texto-dark border border-gray-200 rounded-xl text-[10px] font-bold hover:bg-gray-100 transition-colors"
                     >
                         Seleccionar Rango
                     </button>
-                    
+
                     {showCalendar && (
                         <div class="absolute top-full left-0 mt-2 z-50">
                             <MiniCalendarPicker onSelectRange={handleRangeSelect} />
@@ -759,21 +804,20 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                             const esActivo = i === currentDateIndex;
                             const esCompletado = !!committedBuses[i] && committedBuses[i].length > 0;
                             const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-                            const label = `${dias[d.getDay()]} ${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+                            const label = `${dias[d.getDay()]} ${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
                             return (
-                                <button 
+                                <button
                                     key={i}
                                     onClick={() => !isExcluded && goToDay(i)}
                                     onContextMenu={(e) => handleRightClickDate(e, i)}
-                                    class={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-200 border relative ${
-                                        isExcluded 
-                                            ? 'bg-red-50 text-red-400 border-red-200 line-through opacity-70 hover:opacity-100 cursor-not-allowed'
-                                            : esActivo
-                                                ? 'bg-primary text-white shadow-md border-primary scale-105 z-10'
-                                                : esCompletado
-                                                    ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 cursor-pointer'
-                                                    : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100 cursor-pointer'
-                                    }`}
+                                    class={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-200 border relative ${isExcluded
+                                        ? 'bg-red-50 text-red-400 border-red-200 line-through opacity-70 hover:opacity-100 cursor-not-allowed'
+                                        : esActivo
+                                            ? 'bg-primary text-white shadow-md border-primary scale-105 z-10'
+                                            : esCompletado
+                                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 cursor-pointer'
+                                                : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100 cursor-pointer'
+                                        }`}
                                     title={isExcluded ? "Día excluido (Click derecho para incluir)" : "Click derecho para excluir este día"}
                                 >
                                     <div class="flex items-center gap-1.5">
@@ -821,31 +865,58 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             )}
 
             {hasGrouped && (
-                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50/50 rounded-2xl border border-gray-100/50 mr-2">
-                    <div class="flex items-center gap-2 mr-2 border-r border-gray-200 pr-3">
-                        <HugeiconsIcon icon={FilterIcon} size={14} className="text-texto-grey" />
-                        <span class="text-[10px] font-black text-texto-grey uppercase tracking-widest">Vehículos</span>
-                    </div>
+                <>
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50/50 rounded-2xl border border-gray-100/50 mr-2">
+                        <div class="flex items-center gap-2 mr-2 border-r border-gray-200 pr-3">
+                            <HugeiconsIcon icon={FilterIcon} size={14} className="text-texto-grey" />
+                            <span class="text-[10px] font-black text-texto-grey uppercase tracking-widest">Vehículos</span>
+                        </div>
 
-                    {[
-                        { id: 'todos', label: 'Todos', icon: Layers01Icon, color: '#6366f1' },
-                        { id: 'pares', label: 'Pares', icon: Tick02Icon, color: '#4cc253' },
-                        { id: 'impares', label: 'Impares', icon: ZapIcon, color: '#f97316' }
-                    ].map(f => (
-                        <button
-                            key={f.id}
-                            onClick={() => setBusFilter(f.id as any)}
-                            class={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 border ${busFilter === f.id
+                        {[
+                            { id: 'todos', label: 'Todos', icon: Layers01Icon, color: '#6366f1' },
+                            { id: 'pares', label: 'Pares', icon: Tick02Icon, color: '#4cc253' },
+                            { id: 'impares', label: 'Impares', icon: ZapIcon, color: '#f97316' }
+                        ].map(f => (
+                            <button
+                                key={f.id}
+                                onClick={() => setBusFilter(f.id as any)}
+                                class={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 border ${busFilter === f.id
                                     ? 'bg-white shadow-sm border-gray-200'
                                     : 'border-transparent text-texto-grey hover:bg-white hover:text-texto-dark'
-                                }`}
-                            style={{ color: busFilter === f.id ? f.color : undefined }}
-                        >
-                            <HugeiconsIcon icon={f.icon} size={14} style={{ color: busFilter === f.id ? f.color : undefined }} />
-                            <span class={busFilter === f.id ? 'opacity-100' : 'opacity-60'}>{f.label}</span>
-                        </button>
-                    ))}
-                </div>
+                                    }`}
+                                style={{ color: busFilter === f.id ? f.color : undefined }}
+                            >
+                                <HugeiconsIcon icon={f.icon} size={14} style={{ color: busFilter === f.id ? f.color : undefined }} />
+                                <span class={busFilter === f.id ? 'opacity-100' : 'opacity-60'}>{f.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Filtro por Tipología */}
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-gray-50/50 rounded-2xl border border-gray-100/50">
+                        <div class="flex items-center gap-2 mr-2 border-r border-gray-200 pr-3">
+                            <HugeiconsIcon icon={ViewIcon} size={14} className="text-texto-grey" />
+                            <span class="text-[10px] font-black text-texto-grey uppercase tracking-widest">Tipo</span>
+                        </div>
+                        {[
+                            { id: 'todos', label: 'Todos' },
+                            { id: 'RUNNER', label: 'Runner' },
+                            { id: 'AGRALE', label: 'Agrale' },
+                            { id: 'NPR', label: 'NPR' }
+                        ].map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => setTypeFilter(t.id as any)}
+                                class={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 border ${typeFilter === t.id
+                                    ? 'bg-white shadow-sm border-gray-200 text-primary scale-105'
+                                    : 'border-transparent text-texto-grey hover:bg-white hover:text-texto-dark'
+                                    }`}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
+                </>
             )}
 
             {hasGrouped ? (
@@ -866,7 +937,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                     return (
                         <>
                             {renderButton('reagrupar', 'Volver a Agrupar', RefreshIcon)}
-                            
+
                             {dates.length > 0 ? (
                                 isLastValidDay ? (
                                     <button
@@ -881,7 +952,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                                                 }
                                             };
                                             setDailyAssignments(updatedDaily);
-                                            
+
                                             // Dar tiempo a que el estado se actualice antes de generar
                                             setTimeout(() => handleAction('generar'), 0);
                                         }}
@@ -889,7 +960,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                                         class={`relative flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all duration-300 min-w-[140px] overflow-hidden ml-auto ${success === 'generar'
                                             ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
                                             : 'bg-primary text-white hover:shadow-lg hover:shadow-primary/30 active:scale-95'
-                                        }`}
+                                            }`}
                                     >
                                         <div class="flex items-center gap-2 relative z-10">
                                             {loading === 'generar' ? (
@@ -938,7 +1009,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
             {/* Modal de Alerta de Cuotas */}
             {quotaAlert && (
                 <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div 
+                    <div
                         class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300"
                         onClick={e => e.stopPropagation()}
                     >
@@ -946,16 +1017,16 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                             <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
                                 <HugeiconsIcon icon={ZapIcon} size={32} className="text-orange-500" />
                             </div>
-                            
+
                             <h3 class="text-lg font-bold text-gray-900 mb-2">
                                 ¡Atención Requerida!
                             </h3>
-                            
+
                             <p class="text-sm text-gray-500 leading-relaxed">
                                 {quotaAlert}
                             </p>
                         </div>
-                        
+
                         <div class="p-4 bg-gray-50 flex gap-3">
                             <button
                                 onClick={() => setQuotaAlert(null)}

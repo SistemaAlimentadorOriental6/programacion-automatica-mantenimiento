@@ -71,6 +71,7 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 	}
 	defer rows.Close()
 
+	busTypes := r.getBusTypesMap()
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
@@ -95,6 +96,7 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 			rt.DatoHoy = fmt.Sprintf("%.0f", duracionHoy.Float64)
 		}
 
+		rt.Tipo = busTypes[rt.Bus]
 		if engraseTasks[rt.Tarea] {
 			reportes = append(reportes, rt)
 		}
@@ -140,6 +142,7 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 	}
 	defer rows.Close()
 
+	busTypes := r.getBusTypesMap()
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
@@ -160,6 +163,8 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 		if duracionHoy.Valid {
 			rt.DatoHoy = fmt.Sprintf("%.0f", duracionHoy.Float64)
 		}
+
+		rt.Tipo = busTypes[rt.Bus]
 		reportes = append(reportes, rt)
 	}
 
@@ -213,13 +218,12 @@ func (r *mysqlRepository) filterOpenTasks(reportes []ReporteTarea) []ReporteTare
 	return filtrados
 }
 
-func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
-	// 1. Obtener todos los buses y sus nombres desde Admon para clasificar
+func (r *mysqlRepository) getBusTypesMap() map[string]string {
 	admonQuery := "SELECT codigo_activo, nombre_activo FROM informacion_activos WHERE codigo_activo LIKE '%BUS%'"
 	admonRows, err := r.admonDB.Query(admonQuery)
 	if err != nil {
-		log.Printf("[ERROR] GetLubricacionReports (admonDB): %v", err)
-		return nil, fmt.Errorf("error al consultar tipologia en admonDB: %w", err)
+		log.Printf("[ERROR] getBusTypesMap: %v", err)
+		return make(map[string]string)
 	}
 	defer admonRows.Close()
 
@@ -237,6 +241,12 @@ func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
 			}
 		}
 	}
+	return busTypes
+}
+
+func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
+	// 1. Obtener tipologías oficiales
+	busTypes := r.getBusTypesMap()
 
 	// 2. Listas de tareas por tipología
 	runnerTasks := map[string]bool{
@@ -378,6 +388,7 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 	}
 	defer rows.Close()
 
+	busTypes := r.getBusTypesMap()
 	var reportes []ReporteTarea
 	for rows.Next() {
 		var rt ReporteTarea
@@ -399,6 +410,7 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 			rt.DatoHoy = fmt.Sprintf("%.0f", duracionHoy.Float64)
 		}
 
+		rt.Tipo = busTypes[rt.Bus]
 		if diagnosticoTasks[rt.Tarea] {
 			reportes = append(reportes, rt)
 		}
@@ -538,6 +550,7 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 			motivo_devolucion_a_nube,
 			duracion_segun_variable_de_tarea,
 			porcentaje_duracion,
+			usuario_creador,
 			posible_responsable_danio,
 			id_tarea_solicitada,
 			fecha_solicitud_novedad,
@@ -569,7 +582,7 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 	resultado := make(map[string]DatosExcelAdmon)
 	for rows.Next() {
 		var idTarea string
-		var parte, fechaPropuesta, nombreDia, modoDeteccion, prioridad, subproceso, zonaMaquina, causaBasicaRaw, tiempoCaracterizacion, tiempoDesplazamiento, tiempoPlaneacion, tiempoCierre, observacion, frecuencia, frecuenciaCaracterizada, tipoPolitica, politica, numeroNovedad, novedad, motivoCausaParada, duracion, porcentajeDuracion, usuarioCreador, idTareaSolicitada, fechaSolicitudNovedad, taxonomiaEncadenada, mesInicio, diaInicio, variableGeneracion, bus, responsable, identificacionEmpleado, empleado, agrupacionTareaRaw, referenciaInteligente sql.NullString
+		var parte, fechaPropuesta, nombreDia, modoDeteccion, prioridad, subproceso, zonaMaquina, causaBasicaRaw, tiempoCaracterizacion, tiempoDesplazamiento, tiempoPlaneacion, tiempoCierre, observacion, frecuencia, frecuenciaCaracterizada, tipoPolitica, politica, numeroNovedad, novedad, motivoCausaParada, duracion, porcentajeDuracion, usuarioCreador, posibleResponsableDanio, idTareaSolicitada, fechaSolicitudNovedad, taxonomiaEncadenada, mesInicio, diaInicio, variableGeneracion, bus, responsable, identificacionEmpleado, empleado, agrupacionTareaRaw, referenciaInteligente sql.NullString
 
 		if err := rows.Scan(
 			&idTarea, &parte, &fechaPropuesta, &nombreDia, &modoDeteccion, &prioridad,
@@ -578,6 +591,7 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 			&frecuencia, &frecuenciaCaracterizada, &tipoPolitica, &politica,
 			&numeroNovedad, &novedad, &motivoCausaParada,
 			&duracion, &porcentajeDuracion, &usuarioCreador,
+			&posibleResponsableDanio,
 			&idTareaSolicitada, &fechaSolicitudNovedad, &taxonomiaEncadenada,
 			&mesInicio, &diaInicio, &variableGeneracion, &bus,
 			&responsable, &identificacionEmpleado, &empleado, &agrupacionTareaRaw, &referenciaInteligente,
@@ -600,10 +614,7 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 			datos.ModoDeteccion = modoDeteccion.String
 		}
 		if prioridad.Valid {
-			p := strings.TrimSpace(prioridad.String)
-			if len(p) > 0 {
-				datos.Prioridad = string(p[0]) // Solo el primer carácter (ej: "4")
-			}
+			datos.Prioridad = strings.TrimSpace(prioridad.String)
 		}
 		if subproceso.Valid {
 			s := strings.ToUpper(strings.TrimSpace(subproceso.String))

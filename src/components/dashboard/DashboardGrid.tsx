@@ -26,7 +26,7 @@ interface FullViewColumnProps {
     allBusesOrdered: string[]; // Lista ordenada de TODOS los buses (para alineación)
     filteredBuses: Set<string>; // Solo mostrar estos buses (los que se repiten)
     selectedRows: Set<string>;
-    onRowClick: (tablaIndex: number, filaIndex: number) => void;
+    onRowClick: (tablaIndex: number, filaIndex: number, toggleAll?: boolean, busName?: string, deselectBelow?: boolean) => void;
     tablaIndex: number;
 }
 
@@ -57,10 +57,10 @@ function FullViewColumn({ icon, title, data, accentColor, allBusesOrdered, filte
     const busesToShow = useMemo(() => {
         // Obtener buses únicos de los datos de esta columna
         const uniqueBusesInData = [...new Set((data || []).filter(d => !d.isPlaceholder).map(d => d.bus))];
-        
+
         // Usar el orden global si existe, o el orden natural de los datos
         const baseList = (allBusesOrdered && allBusesOrdered.length > 0) ? allBusesOrdered : uniqueBusesInData;
-        
+
         // Si el bus no está en el orden global pero está en los datos, asegurarnos de incluirlo al final
         const fullBaseList = [...baseList];
         uniqueBusesInData.forEach(b => {
@@ -130,6 +130,12 @@ function FullViewColumn({ icon, title, data, accentColor, allBusesOrdered, filte
                                     {/* Header del grupo (Bus) */}
                                     <button
                                         onClick={() => toggleGroup(bus)}
+                                        onContextMenu={(e) => {
+                                            e.preventDefault();
+                                            // Encontrar el realIndex del primer item de este bus para deseleccionar hacia abajo
+                                            const firstIdx = data.findIndex((d: any) => d.bus === bus && !d.isPlaceholder);
+                                            if (firstIdx !== -1) onRowClick?.(tablaIndex, firstIdx, true, bus, true);
+                                        }}
                                         class="w-full grid grid-cols-[36px_1fr_auto_auto] gap-2 items-center p-3 hover:bg-gray-50 transition-all duration-200"
                                     >
                                         <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/30">
@@ -169,11 +175,10 @@ function FullViewColumn({ icon, title, data, accentColor, allBusesOrdered, filte
                                                         <div class="flex items-center gap-2 overflow-hidden">
                                                             <span class="text-[10px] font-bold uppercase break-words">{tarea.tarea}</span>
                                                             {tarea.estado && (
-                                                                <span class={`px-1 py-0.5 text-[7px] font-black rounded-md border flex-shrink-0 uppercase tracking-tighter ${
-                                                                    tarea.estado.toLowerCase().includes('vencida') ? 'bg-red-50 text-red-600 border-red-100' :
-                                                                    (tarea.estado.toLowerCase().includes('proximo') || tarea.estado.toLowerCase().includes('proxima')) ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                                    'bg-green-50 text-green-600 border-green-100'
-                                                                }`}>
+                                                                <span class={`px-1 py-0.5 text-[7px] font-black rounded-md border flex-shrink-0 uppercase tracking-tighter ${tarea.estado.toLowerCase().includes('vencida') ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                        (tarea.estado.toLowerCase().includes('proximo') || tarea.estado.toLowerCase().includes('proxima')) ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                                            'bg-green-50 text-green-600 border-green-100'
+                                                                    }`}>
                                                                     {tarea.estado}
                                                                 </span>
                                                             )}
@@ -186,7 +191,7 @@ function FullViewColumn({ icon, title, data, accentColor, allBusesOrdered, filte
                                                             <span class="text-[9px] font-bold text-gray-300 opacity-0">--</span>
                                                         )}
                                                     </div>
-                                                    
+
                                                     {(tarea.frecuencia_tarea_ultima || tarea.dato_hoy) && (
                                                         <div class="pl-[30px] flex items-center gap-2">
                                                             <span class="text-[8px] text-texto-grey/50 font-bold uppercase tracking-tighter">
@@ -257,7 +262,7 @@ export default function DashboardGrid() {
     const excludedBusesRef = useRef<Set<string>>(new Set());
 
     // Ref para restaurar selecciones por bus+tarea al navegar entre días
-    const pendingRestoreRef = useRef<Array<{bus: string, tarea: string, tablaIndex: number}> | null>(null);
+    const pendingRestoreRef = useRef<Array<{ bus: string, tarea: string, tablaIndex: number }> | null>(null);
 
     // Límites de selección por vehículo (no por tarea)
     const SELECTION_LIMITS = {
@@ -277,21 +282,21 @@ export default function DashboardGrid() {
             const [tIdx, fIdx] = key.split('-').map(Number);
             const data = tIdx === 1 ? lubricacionMotorData : tIdx === 2 ? engraseData : tIdx === 3 ? diagnosticoData : lubricacionChasisData;
             if (data[fIdx] && !data[fIdx].isPlaceholder) {
-                stats[tIdx as 1|2|3|4].add(data[fIdx].bus);
+                stats[tIdx as 1 | 2 | 3 | 4].add(data[fIdx].bus);
                 buses.add(data[fIdx].bus);
             }
         });
-        
+
         // La cuota compartida es la unión de los buses de Motor y Chasis
         const lubricacionCombinada = new Set([...stats[1], ...stats[4]]);
-        
+
         const tableBuses = {
             1: Array.from(stats[1]),
             2: Array.from(stats[2]),
             3: Array.from(stats[3]),
             4: Array.from(stats[4])
         };
-        
+
         return {
             1: lubricacionCombinada.size,
             2: stats[2].size,
@@ -307,10 +312,11 @@ export default function DashboardGrid() {
             const detail = (e as CustomEvent).detail;
             const p = detail?.priority !== undefined ? detail.priority : priorityRef.current;
             const bf = detail?.busFilter !== undefined ? detail.busFilter : busFilterRef.current;
+            const tf = detail?.typeFilter !== undefined ? detail.typeFilter : 'todos';
             if (detail?.excludedBuses) {
                 excludedBusesRef.current = new Set(detail.excludedBuses);
             }
-            handleAgrupar(p, bf);
+            handleAgrupar(p, bf, tf);
         };
         const handleLoadDay = (e: Event) => {
             const detail = (e as CustomEvent).detail;
@@ -331,13 +337,13 @@ export default function DashboardGrid() {
                     setSelectedRows(new Set());
                 }
                 // Re-agrupar — la restauración ocurre al final de handleAgrupar
-                handleAgrupar(priorityRef.current, busFilterRef.current);
+                handleAgrupar(priorityRef.current, busFilterRef.current, 'todos');
             }
         };
         const handleVistaCompleta = () => {
             setShowFullView(true);
         };
-        
+
         const handleDateChanged = (e: Event) => {
             const detail = (e as CustomEvent).detail;
             if (detail && detail.selectedDate) {
@@ -373,25 +379,43 @@ export default function DashboardGrid() {
         return match ? match[1] : null;
     };
 
-    const handleAgrupar = (priority?: 'vencidas' | 'proximas' | 'ambas' | null, busFilter: 'todos' | 'pares' | 'impares' = 'todos') => {
+    const handleAgrupar = (
+        priority?: 'vencidas' | 'proximas' | 'ambas' | null,
+        busFilter: 'todos' | 'pares' | 'impares' = 'todos',
+        typeFilter: 'todos' | 'RUNNER' | 'AGRALE' | 'NPR' = 'todos'
+    ) => {
         setIsProcessing(true);
 
         setTimeout(() => {
             // Lógica de filtrado por tipo de vehículo
-            const isBusMatchFilter = (bus: string) => {
-                if (busFilter === 'todos') return true;
-                const numMatch = bus.match(/\d+/g);
-                if (!numMatch) return false;
-                const lastNum = parseInt(numMatch[numMatch.length - 1], 10);
-                const isEven = lastNum % 2 === 0;
-                return busFilter === 'pares' ? isEven : !isEven;
+            const isBusMatchFilter = (bus: string, item: any) => {
+                // 1. Filtro Par/Impar
+                let matchParity = true;
+                if (busFilter !== 'todos') {
+                    const numMatch = bus.match(/\d+/g);
+                    if (numMatch) {
+                        const lastNum = parseInt(numMatch[numMatch.length - 1], 10);
+                        const isEven = lastNum % 2 === 0;
+                        matchParity = busFilter === 'pares' ? isEven : !isEven;
+                    } else {
+                        matchParity = false;
+                    }
+                }
+
+                // 2. Filtro de Tipo (Dato oficial desde el servidor)
+                let matchType = true;
+                if (typeFilter !== 'todos') {
+                    matchType = item.tipo === typeFilter;
+                }
+
+                return matchParity && matchType;
             };
 
             const filterData = (data: TareaData[], tablaIndex: number) => (data || []).filter(d => {
                 if (excludedBusesRef.current.has(`${tablaIndex}-${d.bus}`)) return false;
                 // El filtro de bus (todos/pares/impares) solo aplica a Engrase (2) y Diagnóstico (3)
                 if (tablaIndex === 1 || tablaIndex === 4) return true;
-                return isBusMatchFilter(d.bus);
+                return isBusMatchFilter(d.bus, d);
             });
 
             const currentLubMotorData = filterData(rawLubricacionMotorData, 1);
@@ -437,7 +461,7 @@ export default function DashboardGrid() {
             const buscarUrgencia = (lista: any[]) => {
                 lista.forEach(d => {
                     if (d.isPlaceholder || !d.estado) return;
-                    
+
                     const freq = parseNumber(d.frecuencia_tarea_ultima);
                     const hoy = parseNumber(d.dato_hoy);
                     const score = freq > 0 ? hoy / freq : 0;
@@ -491,15 +515,15 @@ export default function DashboardGrid() {
             };
 
             // Para Diagnóstico (y potencialmente otras con cuota independiente)
-            const seleccionarPorCategoria = (lista: any[], tablaIdx: 1|2|3|4) => {
+            const seleccionarPorCategoria = (lista: any[], tablaIdx: 1 | 2 | 3 | 4) => {
                 const cuotaTotal = CUOTAS[tablaIdx];
                 const busTareas = new Map<string, { indices: number[]; scoreMax: number; cantidadTareas: number }>();
-                
+
                 lista.forEach((d, i) => {
                     if (d.isPlaceholder || !tareaCoincide(d)) return;
 
                     const freq = parseNumber(d.frecuencia_tarea_ultima);
-                    const hoy  = parseNumber(d.dato_hoy);
+                    const hoy = parseNumber(d.dato_hoy);
                     const score = freq > 0 ? hoy / freq : 0;
 
                     if (!busTareas.has(d.bus)) {
@@ -535,11 +559,11 @@ export default function DashboardGrid() {
             const seleccionarMotor = () => {
                 const cuotaLub = 12;
                 const busTareasLub = new Map<string, { scoreMax: number; cantidadTareas: number }>();
-                
+
                 currentLubMotorData.forEach(d => {
                     if (d.isPlaceholder || !tareaCoincide(d)) return;
                     const freq = parseNumber(d.frecuencia_tarea_ultima);
-                    const hoy  = parseNumber(d.dato_hoy);
+                    const hoy = parseNumber(d.dato_hoy);
                     const score = freq > 0 ? hoy / freq : 0;
                     if (!busTareasLub.has(d.bus)) {
                         busTareasLub.set(d.bus, { scoreMax: 0, cantidadTareas: 0 });
@@ -548,18 +572,18 @@ export default function DashboardGrid() {
                     entrada.cantidadTareas++;
                     if (score > entrada.scoreMax) entrada.scoreMax = score;
                 });
-                
+
                 const todosLosBusesLub: [string, { scoreMax: number; cantidadTareas: number }][] = [];
                 busTareasLub.forEach((entrada, bus) => todosLosBusesLub.push([bus, entrada]));
-                
+
                 // Ordenado por urgencia (vencidas), no por cantidad
                 todosLosBusesLub.sort((a, b) => {
                     if (b[1].scoreMax !== a[1].scoreMax) return b[1].scoreMax - a[1].scoreMax;
                     return b[1].cantidadTareas - a[1].cantidadTareas;
                 });
-                
+
                 const seleccionadosLub = new Set(todosLosBusesLub.slice(0, cuotaLub).map(x => x[0]));
-                
+
                 currentLubMotorData.forEach((d, i) => {
                     if (seleccionadosLub.has(d.bus) && !d.isPlaceholder && tareaCoincide(d)) {
                         busesSeleccionadosPorTabla[1].add(d.bus);
@@ -575,7 +599,7 @@ export default function DashboardGrid() {
             // 4. ORDENAR CADA TABLA DE MANERA INDEPENDIENTE
             const ordenarTablaIndependiente = (
                 sourceData: any[],
-                tablaIdx: 1|2|3|4,
+                tablaIdx: 1 | 2 | 3 | 4,
                 criterioOrden: 'vencidas' | 'cantidad' = 'cantidad'
             ) => {
                 const rawData = sourceData.filter(d => {
@@ -590,7 +614,7 @@ export default function DashboardGrid() {
                     if (!statsPorBus.has(bus)) statsPorBus.set(bus, { total: 0, urgencia: 0, cantidadFiltro: 0 });
                     const st = statsPorBus.get(bus)!;
                     st.total++;
-                    
+
                     const f = parseNumber(d.frecuencia_tarea_ultima);
                     const h = parseNumber(d.dato_hoy);
                     const s = f > 0 ? h / f : 0;
@@ -614,7 +638,7 @@ export default function DashboardGrid() {
                     if (criterioOrden === 'cantidad') {
                         if (stA.cantidadFiltro !== stB.cantidadFiltro) return stB.cantidadFiltro - stA.cantidadFiltro;
                         return stB.urgencia - stA.urgencia;
-                    } else { 
+                    } else {
                         if (stA.urgencia !== stB.urgencia) return stB.urgencia - stA.urgencia;
                         return stB.cantidadFiltro - stA.cantidadFiltro;
                     }
@@ -651,9 +675,9 @@ export default function DashboardGrid() {
                 return resultado;
             };
 
-            const finalSortedLubMotor  = ordenarTablaIndependiente(currentLubMotorData, 1, 'vencidas');
-            const finalSortedLubChasis  = ordenarTablaIndependiente(currentLubChasisData, 4, 'vencidas');
-            const finalSortedEng  = ordenarTablaIndependiente(currentEngData, 2, 'vencidas');
+            const finalSortedLubMotor = ordenarTablaIndependiente(currentLubMotorData, 1, 'vencidas');
+            const finalSortedLubChasis = ordenarTablaIndependiente(currentLubChasisData, 4, 'vencidas');
+            const finalSortedEng = ordenarTablaIndependiente(currentEngData, 2, 'vencidas');
             const finalSortedDiag = ordenarTablaIndependiente(currentDiagData, 3, 'vencidas');
 
             setLubricacionMotorData(finalSortedLubMotor);
@@ -669,7 +693,7 @@ export default function DashboardGrid() {
                 const toRestore = pendingRestoreRef.current;
                 pendingRestoreRef.current = null;
 
-                const buscarEnLista = (lista: any[], tablaIdx: 1|2|3|4) => {
+                const buscarEnLista = (lista: any[], tablaIdx: 1 | 2 | 3 | 4) => {
                     lista.forEach((d, i) => {
                         if (d.isPlaceholder) return;
                         const match = toRestore.find(r => r.bus === d.bus && r.tarea === d.tarea && r.tablaIndex === tablaIdx);
@@ -682,7 +706,7 @@ export default function DashboardGrid() {
                 buscarEnLista(finalSortedDiag, 3);
             } else {
                 // MODO AGRUPACIÓN NORMAL: reconstruir selección a partir de los buses auto-seleccionados
-                const reconstruirSeleccion = (lista: any[], tablaIdx: 1|2|3|4) => {
+                const reconstruirSeleccion = (lista: any[], tablaIdx: 1 | 2 | 3 | 4) => {
                     const setBuses = busesSeleccionadosPorTabla[tablaIdx];
                     lista.forEach((d, i) => {
                         if (d.isPlaceholder || !setBuses.has(d.bus)) return;
@@ -807,13 +831,23 @@ export default function DashboardGrid() {
         return expanded === index ? 'flex-[2.5] z-20' : 'flex-[0.8] opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-pointer';
     };
 
-    const handleRowClick = (tablaIndex: number, filaIndex: number, toggleAll: boolean = false, busName?: string) => {
+    const handleRowClick = (tablaIndex: number, filaIndex: number, toggleAll: boolean = false, busName?: string, deselectBelow: boolean = false) => {
         const data = tablaIndex === 1 ? lubricacionMotorData : tablaIndex === 2 ? engraseData : tablaIndex === 3 ? diagnosticoData : lubricacionChasisData;
         const item = data[filaIndex];
         if (!item || item.isPlaceholder) return;
 
         const targetBus = busName || item.bus;
         const newSelected = new Set(selectedRows);
+
+        // --- Nueva Regla: Deseleccionar todo hacia abajo ---
+        if (deselectBelow) {
+            // Recorremos desde el índice actual hasta el final de esta tabla
+            for (let i = filaIndex; i < data.length; i++) {
+                newSelected.delete(`${tablaIndex}-${i}`);
+            }
+            setSelectedRows(newSelected);
+            return;
+        }
 
         if (toggleAll) {
             // Lógica de "Seleccionar/Deseleccionar TODO el bus en ESTA tabla"
@@ -845,7 +879,7 @@ export default function DashboardGrid() {
                     }
                 });
 
-                const limit = SELECTION_LIMITS[tablaIndex as 1|2|3|4];
+                const limit = SELECTION_LIMITS[tablaIndex as 1 | 2 | 3 | 4];
                 if (!currentSelectedBuses.has(targetBus) && currentSelectedBuses.size >= limit) {
                     setAlertModal(`Límite excedido: Solo puedes seleccionar tareas de hasta ${limit} vehículos en esta categoría.`);
                     return;
@@ -877,7 +911,7 @@ export default function DashboardGrid() {
                     }
                 });
 
-                const limit = SELECTION_LIMITS[tablaIndex as 1|2|3|4];
+                const limit = SELECTION_LIMITS[tablaIndex as 1 | 2 | 3 | 4];
                 if (!currentSelectedBuses.has(item.bus) && currentSelectedBuses.size >= limit) {
                     setAlertModal(`Límite excedido: Solo puedes seleccionar tareas de hasta ${limit} vehículos en esta categoría.`);
                     return;
@@ -892,7 +926,7 @@ export default function DashboardGrid() {
     useEffect(() => {
         // Construir identificadores bus+tarea para persistencia entre días
         const buildBusTask = () => {
-            const result: Array<{bus: string, tarea: string, tablaIndex: number}> = [];
+            const result: Array<{ bus: string, tarea: string, tablaIndex: number }> = [];
             selectedRows.forEach(key => {
                 const [tIdx, fIdx] = key.split('-').map(Number);
                 let data: any[] = [];
@@ -909,7 +943,7 @@ export default function DashboardGrid() {
         };
 
         window.dispatchEvent(new CustomEvent('dashboard-selection-changed', {
-            detail: { 
+            detail: {
                 selectedRows,
                 selectedBuses: selectionStats.allBuses,
                 tableBuses: selectionStats.tableBuses,
@@ -923,10 +957,10 @@ export default function DashboardGrid() {
         const data2 = engraseData;
         const data3 = diagnosticoData;
         const data4 = lubricacionChasisData;
-        
+
         // Doble click intenta agregar el bus en las 4 tablas si hay espacio
         const newSelected = new Set(selectedRows);
-        
+
         const tablas = [
             { id: 1, d: data1 },
             { id: 2, d: data2 },
@@ -964,7 +998,7 @@ export default function DashboardGrid() {
                 }
             });
 
-            const limit = SELECTION_LIMITS[id as 1|2|3|4];
+            const limit = SELECTION_LIMITS[id as 1 | 2 | 3 | 4];
             if (currentSelectedBuses.has(originItem.bus) || currentSelectedBuses.size < limit) {
                 // Agregar todas las tareas de este bus en esta tabla
                 d.forEach((rd, ri) => {
@@ -1021,7 +1055,7 @@ export default function DashboardGrid() {
 
     const handleAssignmentAll = (field: string, value: any, dataRows: any[]) => {
         if (!field || !dataRows) return;
-        
+
         setAssignments(prev => {
             const next = { ...prev };
             dataRows.forEach(row => {
@@ -1029,8 +1063,8 @@ export default function DashboardGrid() {
                     next[row.id] = { ...(next[row.id] || {}), [field]: value };
                 }
             });
-            window.dispatchEvent(new CustomEvent('dashboard-assignments-changed', { 
-                detail: { assignments: next } 
+            window.dispatchEvent(new CustomEvent('dashboard-assignments-changed', {
+                detail: { assignments: next }
             }));
             return next;
         });
@@ -1063,36 +1097,36 @@ export default function DashboardGrid() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         tareas_abiertas: selectedData
                             .filter(t => {
                                 const id = extractTaskId(t.tarea_abierta_posterior);
                                 return id && idsToFetch.includes(id);
                             })
-                            .map(t => t.tarea_abierta_posterior) 
+                            .map(t => t.tarea_abierta_posterior)
                     })
                 });
 
                 if (res.ok) {
                     const partesMap = await res.json();
                     let hasChanges = false;
-                    
+
                     setAssignments(prev => {
                         const next = { ...prev };
-                        
+
                         selectedData.forEach(row => {
                             const id = extractTaskId(row.tarea_abierta_posterior);
                             if (id && partesMap[id]) {
                                 const info = partesMap[id];
                                 const current = next[row.id] || {};
-                                
+
                                 // Mapeo de campos ADMON -> Reporte
                                 const updates: any = {};
-                                 // Prioridad: Extraer solo el primer carácter (ej: "4" de "4-MEDIA")
-                                 if (!current.codigoPrioridad) updates.codigoPrioridad = (info.prioridad?.toString() || '').charAt(0);
-                                 // Si no hay fecha manual, dejaremos que el generador de Excel aplique la de hoy por defecto
-                                 if (!current.nombreDia) updates.nombreDia = info.nombre_dia;
-                                
+                                // Prioridad: Extraer solo el primer carácter (ej: "4" de "4-MEDIA")
+                                if (!current.codigoPrioridad) updates.codigoPrioridad = (info.prioridad?.toString() || '').charAt(0);
+                                // Si no hay fecha manual, dejaremos que el generador de Excel aplique la de hoy por defecto
+                                if (!current.nombreDia) updates.nombreDia = info.nombre_dia;
+
                                 if (!current.codigoSubproceso) {
                                     const sub = (info.subproceso?.toString() || '').toUpperCase();
                                     const finalSub = (sub === 'PREVENTIVO' || sub === 'PRENVENTIVO') ? 'PREVEN' : sub;
@@ -1454,7 +1488,7 @@ export default function DashboardGrid() {
             {/* Modal de Alerta de Límites */}
             {alertModal && (
                 <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div 
+                    <div
                         class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300"
                         onClick={e => e.stopPropagation()}
                     >
@@ -1462,16 +1496,16 @@ export default function DashboardGrid() {
                             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
                                 <HugeiconsIcon icon={Alert01Icon} size={32} className="text-red-500" />
                             </div>
-                            
+
                             <h3 class="text-lg font-bold text-gray-900 mb-2">
                                 Límite de Cupo
                             </h3>
-                            
+
                             <p class="text-sm text-gray-500 leading-relaxed">
                                 {alertModal}
                             </p>
                         </div>
-                        
+
                         <div class="p-4 bg-gray-50 flex gap-3">
                             <button
                                 onClick={() => setAlertModal(null)}
