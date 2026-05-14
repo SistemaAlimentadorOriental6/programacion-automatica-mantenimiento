@@ -749,13 +749,19 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 		}
 		vGen := strings.ToUpper(strings.TrimSpace(datos.VariableGeneracion))
 		tipoVar := ""
-		if strings.Contains(vGen, "KILOMETRO") {
+		if strings.Contains(vGen, "KILOMETRO") || strings.Contains(vGen, "KM") {
 			tipoVar = "KILOMETROS"
 		} else if strings.Contains(vGen, "HORA") {
 			tipoVar = "HORA_MOTOR"
+		} else if strings.Contains(vGen, "DÍA") || strings.Contains(vGen, "DIA") {
+			tipoVar = "DÍAS OPERADOS"
 		}
 		if tipoVar != "" {
 			pendientes[claveVariable{datos.Bus, tipoVar}] = struct{}{}
+		} else {
+			// Respaldo: Si no hay variable definida, pedimos las estándar para buses
+			pendientes[claveVariable{datos.Bus, "KILOMETROS"}] = struct{}{}
+			pendientes[claveVariable{datos.Bus, "DÍAS OPERADOS"}] = struct{}{}
 		}
 		_ = idTarea
 	}
@@ -782,20 +788,31 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 		}
 		vGen := strings.ToUpper(strings.TrimSpace(datos.VariableGeneracion))
 		tipoVar := ""
-		if strings.Contains(vGen, "KILOMETRO") {
+		if strings.Contains(vGen, "KILOMETRO") || strings.Contains(vGen, "KM") {
 			tipoVar = "KILOMETROS"
 		} else if strings.Contains(vGen, "HORA") {
 			tipoVar = "HORA_MOTOR"
+		} else if strings.Contains(vGen, "DÍA") || strings.Contains(vGen, "DIA") {
+			tipoVar = "DÍAS OPERADOS"
 		}
 		if tipoVar != "" {
 			if valor, ok := valoresMap[claveVariable{datos.Bus, tipoVar}]; ok {
 				datos.ValorVariable = fmt.Sprintf("%.0f", valor)
 			}
 			if valorMin, ok := valoresMinMap[claveVariable{datos.Bus, tipoVar}]; ok {
+				// El valor MIN es la lectura base de la DB
 				datos.ValorMinVariable = valorMin
 			}
-			resultado[idTarea] = datos
+		} else {
+			// Respaldo: Intentar Kilómetros como variable por defecto para Engrase/Diagnóstico
+			if valor, ok := valoresMap[claveVariable{datos.Bus, "KILOMETROS"}]; ok {
+				datos.ValorVariable = fmt.Sprintf("%.0f", valor)
+				if valorMin, ok := valoresMinMap[claveVariable{datos.Bus, "KILOMETROS"}]; ok {
+					datos.ValorMinVariable = valorMin
+				}
+			}
 		}
+		resultado[idTarea] = datos
 	}
 
 	// --- NUEVA LÓGICA: DÍAS OPERADOS ---
