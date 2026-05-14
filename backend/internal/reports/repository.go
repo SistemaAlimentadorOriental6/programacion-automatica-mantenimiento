@@ -818,7 +818,9 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 	// --- NUEVA LÓGICA: DÍAS OPERADOS ---
 	busesDiasOperados := make(map[string]struct{})
 	for _, datos := range resultado {
-		if strings.Contains(strings.ToUpper(datos.Frecuencia), "DIAS OPERADOS") {
+		f := strings.ToUpper(datos.Frecuencia)
+		v := strings.ToUpper(datos.VariableGeneracion)
+		if strings.Contains(f, "DIA") || strings.Contains(f, "DÍA") || strings.Contains(v, "DIA") || strings.Contains(v, "DÍA") {
 			if datos.Bus != "" {
 				busesDiasOperados[datos.Bus] = struct{}{}
 			}
@@ -829,7 +831,9 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 		log.Printf("[DEBUG] Calculando DÍAS OPERADOS para %d buses", len(busesDiasOperados))
 		resultadosDias := r.getBatchValoresDiasOperados(busesDiasOperados)
 		for idTarea, datos := range resultado {
-			if strings.Contains(strings.ToUpper(datos.Frecuencia), "DIAS OPERADOS") {
+			f := strings.ToUpper(datos.Frecuencia)
+			v := strings.ToUpper(datos.VariableGeneracion)
+			if strings.Contains(f, "DIA") || strings.Contains(f, "DÍA") || strings.Contains(v, "DIA") || strings.Contains(v, "DÍA") {
 				if res, ok := resultadosDias[datos.Bus]; ok {
 					datos.ValorVariable = fmt.Sprintf("%.0f", res.Valor)
 					datos.ValorMinVariable = fmt.Sprintf("%.0f", res.Base)
@@ -1065,9 +1069,9 @@ func (r *mysqlRepository) getBatchValoresDiasOperados(buses map[string]struct{})
 			SUBSTRING_INDEX(GROUP_CONCAT(valor_variable_control ORDER BY fecha_variable_control DESC), ',', 1) AS valor,
 			MAX(fecha_variable_control) AS max_fecha
 		FROM actualizacion_variable_control
-		WHERE variable_control = 'DÍAS OPERADOS'
+		WHERE variable_control IN ('DÍAS OPERADOS', 'DIAS OPERADOS')
 		AND codigo_activo IN (%s)
-		GROUP BY codigo_activo
+		GROUP BY codigo_activo, variable_control
 	`, strings.Join(placeholders, ","))
 
 	rows, err := r.admonDB.Query(query, args...)

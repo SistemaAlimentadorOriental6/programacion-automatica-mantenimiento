@@ -241,6 +241,7 @@ export default function DashboardGrid() {
         frecuencia_tarea_ultima?: string;
         dato_hoy?: string;
         taxonomia_4?: string;
+        tipo?: string;
     }
 
     const [lubricacionMotorData, setLubricacionMotorData] = useState<TareaData[]>([]);
@@ -413,7 +414,7 @@ export default function DashboardGrid() {
 
             const filterData = (data: TareaData[], tablaIndex: number) => (data || []).filter(d => {
                 if (excludedBusesRef.current.has(`${tablaIndex}-${d.bus}`)) return false;
-                // El filtro de bus (todos/pares/impares) solo aplica a Engrase (2) y Diagnóstico (3)
+                // El filtro de bus (todos/pares/impares) y tipo solo aplica a Engrase (2) y Diagnóstico (3)
                 if (tablaIndex === 1 || tablaIndex === 4) return true;
                 return isBusMatchFilter(d.bus, d);
             });
@@ -660,14 +661,9 @@ export default function DashboardGrid() {
 
                     tareas.forEach(t => {
                         resultado.push({
-                            bus: t.bus,
-                            tarea: t.tarea,
-                            estado: t.estado,
+                            ...t,
                             cantidad: taskCounts.get(`${bus}-${t.tarea}`) || 1,
                             busTotal: statsPorBus.get(bus)!.total,
-                            tarea_abierta_posterior: t.tarea_abierta_posterior,
-                            frecuencia_tarea_ultima: t.frecuencia_tarea_ultima,
-                            dato_hoy: t.dato_hoy
                         });
                     });
                 });
@@ -696,7 +692,14 @@ export default function DashboardGrid() {
                 const buscarEnLista = (lista: any[], tablaIdx: 1 | 2 | 3 | 4) => {
                     lista.forEach((d, i) => {
                         if (d.isPlaceholder) return;
-                        const match = toRestore.find(r => r.bus === d.bus && r.tarea === d.tarea && r.tablaIndex === tablaIdx);
+                        const match = toRestore.find(r => {
+                            if (r.tablaIndex !== tablaIdx || r.bus !== d.bus || r.tarea !== d.tarea) return false;
+                            // Si hay tarea_abierta_posterior, comparar para distinguir duplicados
+                            if (r.tarea_abierta_posterior && d.tarea_abierta_posterior) {
+                                return r.tarea_abierta_posterior === d.tarea_abierta_posterior;
+                            }
+                            return true;
+                        });
                         if (match) finalSelected.add(`${tablaIdx}-${i}`);
                     });
                 };
@@ -926,7 +929,7 @@ export default function DashboardGrid() {
     useEffect(() => {
         // Construir identificadores bus+tarea para persistencia entre días
         const buildBusTask = () => {
-            const result: Array<{ bus: string, tarea: string, tablaIndex: number }> = [];
+            const result: Array<{ bus: string, tarea: string, tablaIndex: number, tarea_abierta_posterior?: string }> = [];
             selectedRows.forEach(key => {
                 const [tIdx, fIdx] = key.split('-').map(Number);
                 let data: any[] = [];
@@ -936,7 +939,7 @@ export default function DashboardGrid() {
                 else if (tIdx === 4) data = lubricacionChasisData;
                 const item = data[fIdx];
                 if (item && !item.isPlaceholder && item.tarea) {
-                    result.push({ bus: item.bus, tarea: item.tarea, tablaIndex: tIdx });
+                    result.push({ bus: item.bus, tarea: item.tarea, tablaIndex: tIdx, tarea_abierta_posterior: item.tarea_abierta_posterior });
                 }
             });
             return result;
@@ -1135,7 +1138,7 @@ export default function DashboardGrid() {
                                 if (!current.codigoZonaMaquina) updates.codigoZonaMaquina = info.zona_maquina;
                                 if (!current.codigoCausaBasica) updates.codigoCausaBasica = info.causa_basica;
                                 if (!current.codigoResponsable) updates.codigoResponsable = info.codigo_responsable;
-                                if (!current.codigoEmpleado) updates.codigoEmpleado = info.identificacion_empleado;
+                                if (!current.codigoEmpleado) updates.codigoEmpleado = info.empleado;
                                 if (!current.observacion) updates.observacion = info.observacion;
                                 if (!current.valorVariable) updates.valorVariable = info.valor_variable;
                                 // Estado: Intentar mapear desde Admon

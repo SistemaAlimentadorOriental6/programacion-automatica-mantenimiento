@@ -56,11 +56,11 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
     const selectedRowsRef = useRef<Set<string>>(new Set());
     const selectedBusesRef = useRef<string[]>([]);
     const selectedTableBusesRef = useRef<string[]>([]);
-    const selectedBusTaskRef = useRef<Array<{ bus: string, tarea: string, tablaIndex: number }>>([]);
+    const selectedBusTaskRef = useRef<Array<{ bus: string, tarea: string, tablaIndex: number, tarea_abierta_posterior?: string }>>([]);
     const assignmentsRef = useRef<Record<string, any>>({});
 
     // Almacén maestro: snapshot para restaurar selecciones al navegar entre días
-    const [dailyAssignments, setDailyAssignments] = useState<Record<number, { busTask: Array<{ bus: string, tarea: string, tablaIndex: number }>, data: any, assignments?: Record<string, any> }>>({});
+    const [dailyAssignments, setDailyAssignments] = useState<Record<number, { busTask: Array<{ bus: string, tarea: string, tablaIndex: number, tarea_abierta_posterior?: string }>, data: any, assignments?: Record<string, any> }>>({});
     // Buses comprometidos por día: SOLO se actualiza al presionar "Siguiente Día"
     const [committedBuses, setCommittedBuses] = useState<Record<number, string[]>>({});
     // Fechas excluidas (marcadas con X por el usuario)
@@ -237,7 +237,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
             // --- RECOPILACIÓN DE TODA LA PLANEACIÓN (TODOS LOS DÍAS) ---
             // Combinar el snapshot guardado en dailyAssignments con el día actual
-            const allDays: Record<number, { busTask: Array<{ bus: string, tarea: string, tablaIndex: number }>, data: any, assignments?: Record<string, any> }> = {
+            const allDays: Record<number, { busTask: Array<{ bus: string, tarea: string, tablaIndex: number, tarea_abierta_posterior?: string }>, data: any, assignments?: Record<string, any> }> = {
                 ...dailyAssignments,
                 [currentDateIndex]: {
                     busTask: [...selectedBusTaskRef.current],
@@ -289,7 +289,10 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                     else if (bt.tablaIndex === 3) lista = diagnostico;
                     else if (bt.tablaIndex === 4) lista = lubricacionChasis;
 
-                    const idx = lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+                    // Buscar por tarea_abierta_posterior (único) o fallback a bus+tarea
+                    const idx = bt.tarea_abierta_posterior
+                        ? lista.findIndex((d: any) => d.tarea_abierta_posterior === bt.tarea_abierta_posterior)
+                        : lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
                     if (idx === -1) return;
                     const item = lista[idx];
                     if (!item || item.isPlaceholder) return;
@@ -358,8 +361,8 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                             'CODIGO ZONA MAQUINA (COLUMNA EDITABLE)': getValue(userAssignment.codigoZonaMaquina, parteInfo?.zona_maquina ?? ''),
                             'CODIGO CAUSA BASICA (COLUMNA EDITABLE)': getValue(userAssignment.codigoCausaBasica, parteInfo?.causa_basica ?? ''),
                             'CODIGO RESPONSABLE (COLUMNA EDITABLE)': getValue(userAssignment.codigoResponsable, parteInfo?.codigo_responsable ?? ''),
-                            'IDENTIFICACION EMPLEADO': getValue(userAssignment.codigoEmpleado, parteInfo?.identificacion_empleado ?? ''),
-                            'CODIGO EMPLEADO (COLUMNA EDITABLE)': parteInfo?.empleado ?? '',
+                            'IDENTIFICACION EMPLEADO': parteInfo?.identificacion_empleado ?? '',
+                            'CODIGO EMPLEADO (COLUMNA EDITABLE)': getValue(userAssignment.codigoEmpleado, parteInfo?.empleado ?? ''),
                             'TIEMPO CARACTERIZACION': parteInfo?.tiempo_caracterizacion ?? '',
                             'TIEMPO DESPLAZAMIENTO': parteInfo?.tiempo_desplazamiento ?? '',
                             'TIEMPO PLANEACION': parteInfo?.tiempo_planeacion ?? '',
