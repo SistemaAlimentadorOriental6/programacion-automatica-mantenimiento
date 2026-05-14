@@ -17240,3 +17240,240 @@
 [09:00:18] 200 -     56.6403ms POST /api/reports/partes-excel
 2026/05/14 09:02:08 main.go:24: --- Iniciando servidor backend ---
 2026/05/14 09:02:08 server.go:71: Servidor iniciado en puerto 4000
+[09:02:25] 204 -            0s OPTIONS /api/auth/get-data
+[09:02:25] 204 -            0s OPTIONS /api/reports/lubricacion
+[09:02:25] 204 -            0s OPTIONS /api/reports/diagnostico
+[09:02:25] 204 -            0s OPTIONS /api/reports/engrase
+2026/05/14 09:02:25 repository.go:51: [DEBUG] Obteniendo info de perfil para: [natanael.feria@sao6.com.co]
+[09:02:25] 200 -     58.2532ms GET /api/auth/get-data
+2026/05/14 09:02:25 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 20.0481ms para 107 IDs
+[09:02:25] 200 -     90.4849ms GET /api/reports/diagnostico
+2026/05/14 09:02:25 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 16.5713ms para 77 IDs
+[09:02:25] 200 -     75.0517ms GET /api/reports/engrase
+2026/05/14 09:02:26 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 113.6406ms para 478 IDs
+[09:02:25] 200 -    188.3589ms GET /api/reports/lubricacion
+[09:02:34] 204 -            0s OPTIONS /api/reports/responsables
+[09:02:34] 204 -            0s OPTIONS /api/reports/tecnicos
+[09:02:34] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/05/14 09:02:34 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 47
+2026/05/14 09:02:34 repository.go:499: [DEBUG] IDs extraídos para consulta: map[832998:{} 833004:{} 833009:{} 845961:{} 855121:{} 881353:{} 881646:{} 881690:{} 887404:{} 889605:{} 889631:{} 890063:{} 895081:{} 895254:{} 895291:{} 895293:{} 895294:{} 895443:{} 895765:{} 896759:{} 898433:{} 898547:{} 900017:{} 900977:{} 901132:{} 903495:{} 903739:{} 904564:{} 904583:{} 909802:{} 910046:{} 911421:{} 911494:{} 911937:{} 912510:{} 912618:{} 915375:{} 915400:{} 916315:{} 916321:{} 917766:{} 918632:{} 918906:{} 921593:{} 921603:{} 922139:{} 922204:{}]
+[09:02:34] 200 -     10.0695ms GET /api/reports/responsables
+[09:02:34] 200 -     27.0745ms GET /api/reports/tecnicos
+2026/05/14 09:02:34 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:34 repository.go:579: [DEBUG] Query Admon completada en 23.0766ms
+2026/05/14 09:02:34 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (47 filas). Iniciando consulta de variables...
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS021 HORA_MOTOR: valor base=61055 + 4 días x 16h = 61119
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS109 HORA_MOTOR: valor base=31579 + 4 días x 16h = 31643
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS154 HORA_MOTOR: valor base=58105 + 11 días x 16h = 58281
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS157 HORA_MOTOR: valor base=56564 + 4 días x 16h = 56628
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS205 HORA_MOTOR: valor base=51699 + 4 días x 16h = 51763
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS218 HORA_MOTOR: valor base=48201 + 4 días x 16h = 48265
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS232 HORA_MOTOR: valor base=43759 + 4 días x 16h = 43823
+2026/05/14 09:02:34 repository.go:962: [DEBUG] BUS256 HORA_MOTOR: valor base=45439 + 11 días x 16h = 45615
+2026/05/14 09:02:34 repository.go:968: [DEBUG] getBatch: variables resueltas para 10 combinaciones de 40 pendientes
+2026/05/14 09:02:34 repository.go:778: [DEBUG] Consulta de variables completada en 79.2813ms
+2026/05/14 09:02:35 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 1.1220874s
+2026/05/14 09:02:35 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 30 buses
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS005 DÍAS OPERADOS: valor base=4450 + 3 días = 4453
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS006 DÍAS OPERADOS: valor base=4495 + 3 días = 4498
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS024 DÍAS OPERADOS: valor base=4437 + 3 días = 4440
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS041 DÍAS OPERADOS: valor base=4372 + 3 días = 4375
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS044 DÍAS OPERADOS: valor base=4364 + 3 días = 4367
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS060 DÍAS OPERADOS: valor base=4254 + 3 días = 4257
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS065 DÍAS OPERADOS: valor base=3973 + 3 días = 3976
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS082 DÍAS OPERADOS: valor base=4313 + 3 días = 4316
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS115 DÍAS OPERADOS: valor base=4345 + 3 días = 4348
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS119 DÍAS OPERADOS: valor base=4315 + 3 días = 4318
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS127 DÍAS OPERADOS: valor base=4060 + 3 días = 4063
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS128 DÍAS OPERADOS: valor base=4322 + 3 días = 4325
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS133 DÍAS OPERADOS: valor base=4373 + 3 días = 4376
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS157 DÍAS OPERADOS: valor base=3702 + 3 días = 3705
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS159 DÍAS OPERADOS: valor base=3714 + 3 días = 3717
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS167 DÍAS OPERADOS: valor base=4156 + 3 días = 4159
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS170 DÍAS OPERADOS: valor base=4332 + 3 días = 4335
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS172 DÍAS OPERADOS: valor base=4323 + 3 días = 4326
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS173 DÍAS OPERADOS: valor base=4328 + 3 días = 4331
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS179 DÍAS OPERADOS: valor base=3713 + 3 días = 3716
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS185 DÍAS OPERADOS: valor base=4074 + 3 días = 4077
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS190 DÍAS OPERADOS: valor base=4032 + 3 días = 4035
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS195 DÍAS OPERADOS: valor base=4030 + 3 días = 4033
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS199 DÍAS OPERADOS: valor base=3548 + 3 días = 3551
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS204 DÍAS OPERADOS: valor base=3548 + 3 días = 3551
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS213 DÍAS OPERADOS: valor base=3549 + 3 días = 3552
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS224 DÍAS OPERADOS: valor base=3364 + 3 días = 3367
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS225 DÍAS OPERADOS: valor base=3404 + 3 días = 3407
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS229 DÍAS OPERADOS: valor base=3527 + 3 días = 3530
+2026/05/14 09:02:36 repository.go:1105: [DEBUG] BUS245 DÍAS OPERADOS: valor base=2774 + 3 días = 2777
+2026/05/14 09:02:36 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 2.038507s. Filas finales: 47
+[09:02:34] 200 -    2.0408689s POST /api/reports/partes-excel
+2026/05/14 09:02:38 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:38 repository.go:499: [DEBUG] IDs extraídos para consulta: map[898620:{}]
+[09:02:38] 200 -     10.6591ms GET /api/reports/responsables
+[09:02:38] 200 -     11.2037ms GET /api/reports/tecnicos
+2026/05/14 09:02:38 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:38 repository.go:579: [DEBUG] Query Admon completada en 6.367ms
+2026/05/14 09:02:38 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:38 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:38 repository.go:778: [DEBUG] Consulta de variables completada en 16.9548ms
+2026/05/14 09:02:38 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:38 repository.go:499: [DEBUG] IDs extraídos para consulta: map[905703:{}]
+2026/05/14 09:02:38 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:38 repository.go:579: [DEBUG] Query Admon completada en 5.689ms
+2026/05/14 09:02:38 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:38 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:38 repository.go:778: [DEBUG] Consulta de variables completada en 8.2994ms
+2026/05/14 09:02:38 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:38 repository.go:499: [DEBUG] IDs extraídos para consulta: map[807961:{}]
+2026/05/14 09:02:39 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:39 repository.go:579: [DEBUG] Query Admon completada en 5.2571ms
+2026/05/14 09:02:39 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:39 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:39 repository.go:778: [DEBUG] Consulta de variables completada en 12.373ms
+2026/05/14 09:02:39 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 755.8594ms
+2026/05/14 09:02:39 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:39 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:39 repository.go:499: [DEBUG] IDs extraídos para consulta: map[858481:{}]
+2026/05/14 09:02:39 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:39 repository.go:579: [DEBUG] Query Admon completada en 7.2251ms
+2026/05/14 09:02:39 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:39 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:39 repository.go:778: [DEBUG] Consulta de variables completada en 11.73ms
+2026/05/14 09:02:39 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 788.9931ms
+2026/05/14 09:02:39 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:39 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 822.8552ms
+2026/05/14 09:02:39 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:40 repository.go:1105: [DEBUG] BUS152 DÍAS OPERADOS: valor base=4366 + 3 días = 4369
+2026/05/14 09:02:40 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.672136s. Filas finales: 1
+[09:02:38] 200 -     1.672136s POST /api/reports/partes-excel
+2026/05/14 09:02:40 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 839.0234ms
+2026/05/14 09:02:40 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:40 repository.go:1105: [DEBUG] BUS088 DÍAS OPERADOS: valor base=4377 + 3 días = 4380
+2026/05/14 09:02:40 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.6838222s. Filas finales: 1
+[09:02:38] 200 -    1.6838222s POST /api/reports/partes-excel
+[09:02:40] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/05/14 09:02:40 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:40 repository.go:499: [DEBUG] IDs extraídos para consulta: map[834911:{}]
+2026/05/14 09:02:40 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:40 repository.go:579: [DEBUG] Query Admon completada en 8.0125ms
+2026/05/14 09:02:40 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:40 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:40 repository.go:778: [DEBUG] Consulta de variables completada en 14.7376ms
+2026/05/14 09:02:40 repository.go:1105: [DEBUG] BUS104 DÍAS OPERADOS: valor base=4343 + 3 días = 4346
+2026/05/14 09:02:40 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.7349536s. Filas finales: 1
+[09:02:38] 200 -    1.7354716s POST /api/reports/partes-excel
+2026/05/14 09:02:40 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:40 repository.go:499: [DEBUG] IDs extraídos para consulta: map[898589:{}]
+2026/05/14 09:02:40 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:40 repository.go:579: [DEBUG] Query Admon completada en 22.1434ms
+2026/05/14 09:02:40 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:40 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:40 repository.go:778: [DEBUG] Consulta de variables completada en 14.7455ms
+2026/05/14 09:02:41 repository.go:1105: [DEBUG] BUS142 DÍAS OPERADOS: valor base=4252 + 3 días = 4255
+2026/05/14 09:02:41 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.7072986s. Filas finales: 1
+[09:02:39] 200 -    1.7072986s POST /api/reports/partes-excel
+2026/05/14 09:02:41 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:41 repository.go:499: [DEBUG] IDs extraídos para consulta: map[898659:{}]
+2026/05/14 09:02:41 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:41 repository.go:579: [DEBUG] Query Admon completada en 7.4771ms
+2026/05/14 09:02:41 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:41 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:41 repository.go:778: [DEBUG] Consulta de variables completada en 8.8616ms
+2026/05/14 09:02:41 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 792.4048ms
+2026/05/14 09:02:41 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:41 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:41 repository.go:499: [DEBUG] IDs extraídos para consulta: map[909589:{}]
+2026/05/14 09:02:41 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:41 repository.go:579: [DEBUG] Query Admon completada en 7.54ms
+2026/05/14 09:02:41 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:41 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:41 repository.go:778: [DEBUG] Consulta de variables completada en 9.0804ms
+2026/05/14 09:02:41 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 792.9164ms
+2026/05/14 09:02:41 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:42 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/05/14 09:02:42 repository.go:499: [DEBUG] IDs extraídos para consulta: map[911442:{}]
+2026/05/14 09:02:42 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:42 repository.go:579: [DEBUG] Query Admon completada en 9.5894ms
+2026/05/14 09:02:42 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/05/14 09:02:42 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 1 pendientes
+2026/05/14 09:02:42 repository.go:778: [DEBUG] Consulta de variables completada en 5.6988ms
+2026/05/14 09:02:42 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 832.1093ms
+2026/05/14 09:02:42 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:42 repository.go:1105: [DEBUG] BUS090 DÍAS OPERADOS: valor base=4330 + 3 días = 4333
+2026/05/14 09:02:42 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.6896287s. Filas finales: 1
+[09:02:40] 200 -    1.6902575s POST /api/reports/partes-excel
+2026/05/14 09:02:42 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 847.5425ms
+2026/05/14 09:02:42 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:42 repository.go:1105: [DEBUG] BUS213 DÍAS OPERADOS: valor base=3549 + 3 días = 3552
+2026/05/14 09:02:42 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.8121627s. Filas finales: 1
+[09:02:40] 200 -    1.8121627s POST /api/reports/partes-excel
+2026/05/14 09:02:42 repository.go:1105: [DEBUG] BUS158 DÍAS OPERADOS: valor base=3693 + 3 días = 3696
+2026/05/14 09:02:42 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.7367025s. Filas finales: 1
+[09:02:40] 200 -    1.7384029s POST /api/reports/partes-excel
+2026/05/14 09:02:43 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 905.7859ms
+2026/05/14 09:02:43 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 1 buses
+2026/05/14 09:02:43 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 9
+2026/05/14 09:02:43 repository.go:499: [DEBUG] IDs extraídos para consulta: map[807961:{} 834911:{} 858481:{} 898589:{} 898620:{} 898659:{} 905703:{} 909589:{} 911442:{}]
+2026/05/14 09:02:43 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:02:43 repository.go:579: [DEBUG] Query Admon completada en 7.5501ms
+2026/05/14 09:02:43 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (9 filas). Iniciando consulta de variables...
+2026/05/14 09:02:43 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 9 pendientes
+2026/05/14 09:02:43 repository.go:778: [DEBUG] Consulta de variables completada en 12.673ms
+2026/05/14 09:02:43 repository.go:1105: [DEBUG] BUS066 DÍAS OPERADOS: valor base=4422 + 3 días = 4425
+2026/05/14 09:02:43 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.7157274s. Filas finales: 1
+[09:02:41] 200 -    1.7157274s POST /api/reports/partes-excel
+2026/05/14 09:02:43 repository.go:1105: [DEBUG] BUS119 DÍAS OPERADOS: valor base=4315 + 3 días = 4318
+2026/05/14 09:02:43 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.7947431s. Filas finales: 1
+[09:02:41] 200 -    1.7947431s POST /api/reports/partes-excel
+2026/05/14 09:02:44 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 808.3044ms
+2026/05/14 09:02:44 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 9 buses
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS066 DÍAS OPERADOS: valor base=4422 + 3 días = 4425
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS088 DÍAS OPERADOS: valor base=4377 + 3 días = 4380
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS090 DÍAS OPERADOS: valor base=4330 + 3 días = 4333
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS104 DÍAS OPERADOS: valor base=4343 + 3 días = 4346
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS119 DÍAS OPERADOS: valor base=4315 + 3 días = 4318
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS142 DÍAS OPERADOS: valor base=4252 + 3 días = 4255
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS152 DÍAS OPERADOS: valor base=4366 + 3 días = 4369
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS158 DÍAS OPERADOS: valor base=3693 + 3 días = 3696
+2026/05/14 09:02:44 repository.go:1105: [DEBUG] BUS213 DÍAS OPERADOS: valor base=3549 + 3 días = 3552
+2026/05/14 09:02:44 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.6294041s. Filas finales: 9
+[09:02:42] 200 -    1.6299135s POST /api/reports/partes-excel
+[09:05:26] 204 -            0s OPTIONS /api/reports/tecnicos
+[09:05:26] 204 -            0s OPTIONS /api/reports/responsables
+[09:05:26] 200 -      7.1566ms GET /api/reports/responsables
+[09:05:26] 200 -      7.6757ms GET /api/reports/tecnicos
+[09:05:32] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/05/14 09:05:33 repository.go:483: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 22
+2026/05/14 09:05:33 repository.go:499: [DEBUG] IDs extraídos para consulta: map[807961:{} 834911:{} 845961:{} 858481:{} 881353:{} 881646:{} 881690:{} 887404:{} 889631:{} 890063:{} 895765:{} 898433:{} 898589:{} 898620:{} 898659:{} 900977:{} 903495:{} 905703:{} 909589:{} 909802:{} 911442:{} 918906:{}]
+2026/05/14 09:05:33 repository.go:524: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4071 empleados, 38 zona_maquina
+2026/05/14 09:05:33 repository.go:579: [DEBUG] Query Admon completada en 11.5039ms
+2026/05/14 09:05:33 repository.go:769: [DEBUG] Procesamiento de filas Admon completado (22 filas). Iniciando consulta de variables...
+2026/05/14 09:05:33 repository.go:968: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 22 pendientes
+2026/05/14 09:05:33 repository.go:778: [DEBUG] Consulta de variables completada en 16.5877ms
+2026/05/14 09:05:34 repository.go:782: [DEBUG] Consulta de valores MIN variables completada en 952.1846ms
+2026/05/14 09:05:34 repository.go:829: [DEBUG] Calculando DÍAS OPERADOS para 22 buses
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS005 DÍAS OPERADOS: valor base=4450 + 3 días = 4453
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS024 DÍAS OPERADOS: valor base=4437 + 3 días = 4440
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS065 DÍAS OPERADOS: valor base=3973 + 3 días = 3976
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS066 DÍAS OPERADOS: valor base=4422 + 3 días = 4425
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS088 DÍAS OPERADOS: valor base=4377 + 3 días = 4380
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS090 DÍAS OPERADOS: valor base=4330 + 3 días = 4333
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS104 DÍAS OPERADOS: valor base=4343 + 3 días = 4346
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS119 DÍAS OPERADOS: valor base=4315 + 3 días = 4318
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS127 DÍAS OPERADOS: valor base=4060 + 3 días = 4063
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS142 DÍAS OPERADOS: valor base=4252 + 3 días = 4255
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS152 DÍAS OPERADOS: valor base=4366 + 3 días = 4369
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS158 DÍAS OPERADOS: valor base=3693 + 3 días = 3696
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS167 DÍAS OPERADOS: valor base=4156 + 3 días = 4159
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS170 DÍAS OPERADOS: valor base=4332 + 3 días = 4335
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS172 DÍAS OPERADOS: valor base=4323 + 3 días = 4326
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS173 DÍAS OPERADOS: valor base=4328 + 3 días = 4331
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS179 DÍAS OPERADOS: valor base=3713 + 3 días = 3716
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS185 DÍAS OPERADOS: valor base=4074 + 3 días = 4077
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS190 DÍAS OPERADOS: valor base=4032 + 3 días = 4035
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS195 DÍAS OPERADOS: valor base=4030 + 3 días = 4033
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS213 DÍAS OPERADOS: valor base=3549 + 3 días = 3552
+2026/05/14 09:05:35 repository.go:1105: [DEBUG] BUS224 DÍAS OPERADOS: valor base=3364 + 3 días = 3367
+2026/05/14 09:05:35 repository.go:842: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1.875903s. Filas finales: 22
+[09:05:32] 200 -     1.875903s POST /api/reports/partes-excel
+2026/05/14 10:48:33 main.go:24: --- Iniciando servidor backend ---
+2026/05/14 10:48:34 server.go:71: Servidor iniciado en puerto 4000

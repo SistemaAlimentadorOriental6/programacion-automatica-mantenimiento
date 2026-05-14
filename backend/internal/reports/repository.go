@@ -49,14 +49,14 @@ func (r *mysqlRepository) GetEngraseReports() ([]ReporteTarea, error) {
 		SELECT
 			codigo_activo AS bus,
 			tarea,
-			estado_tarea AS estado,
+			estado_tarea_hoy AS estado,
 			tarea_abierta_posterior,
 			frecuencia_tarea_ultima,
 			duracion_hoy_ied,
 			bus_en_franja_hoy,
 			taxonomia_4
 		FROM reporte_tareas
-		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
+		WHERE LOWER(estado_tarea_hoy) IN ('proxima', 'vencida')
 		AND estado_bus IS NULL
 		AND bus_en_franja_hoy IN ('SI', 'NO')
 		AND (
@@ -120,7 +120,7 @@ func (r *mysqlRepository) GetReporteTareas() ([]ReporteTarea, error) {
 		SELECT 
 			codigo_activo as bus, 
 			tarea, 
-			estado_tarea as estado,
+			estado_tarea_hoy as estado,
 			tarea_abierta_posterior,
 			frecuencia_tarea_ultima,
 			duracion_hoy_ied,
@@ -300,14 +300,14 @@ func (r *mysqlRepository) GetLubricacionReports() ([]ReporteTarea, error) {
 		SELECT 
 			codigo_activo as bus, 
 			tarea, 
-			estado_tarea as estado, 
+			estado_tarea_hoy as estado, 
 			tarea_abierta_posterior, 
 			frecuencia_tarea_ultima, 
 			duracion_hoy_ied,
 			bus_en_franja_hoy,
 			taxonomia_4
 		FROM reporte_tareas 
-		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
+		WHERE LOWER(estado_tarea_hoy) IN ('proxima', 'vencida')
 		AND estado_bus IS NULL
 		AND bus_en_franja_hoy IN ('SI', 'NO')
 		AND (
@@ -366,14 +366,14 @@ func (r *mysqlRepository) GetDiagnosticoReports() ([]ReporteTarea, error) {
 		SELECT 
 			codigo_activo as bus, 
 			tarea, 
-			estado_tarea as estado, 
+			estado_tarea_hoy as estado, 
 			tarea_abierta_posterior, 
 			frecuencia_tarea_ultima, 
 			duracion_hoy_ied,
 			bus_en_franja_hoy,
 			taxonomia_4
 		FROM reporte_tareas 
-		WHERE LOWER(estado_tarea) IN ('proxima', 'vencida')
+		WHERE LOWER(estado_tarea_hoy) IN ('proxima', 'vencida')
 		AND estado_bus IS NULL
 		AND bus_en_franja_hoy IN ('SI', 'NO')
 		AND (
