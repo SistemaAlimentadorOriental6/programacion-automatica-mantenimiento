@@ -478,6 +478,109 @@ func (r *mysqlRepository) GetDetalleTareaAdmon(ids []string) ([]TareaAdmon, erro
 	return tareas, nil
 }
 
+
+// resolverIDsAnteriores toma un conjunto de IDs actuales y para cada uno busca
+// el ID menor (mínimo) que se encuentre en estado ABIERTA de la misma combinación
+// bus (codigo_activo) + tarea (tarea) + parte + zona_maquina en la vista tareas_solicitadas_activos.
+// Retorna un mapa idActual -> idMinimo.
+func (r *mysqlRepository) resolverIDsAnteriores(ids []string) map[string]string {
+	result := make(map[string]string)
+	if len(ids) == 0 {
+		return result
+	}
+
+	// Validar IDs numéricos
+	inValues := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if _, err := strconv.ParseInt(id, 10, 64); err == nil {
+			inValues = append(inValues, "'"+id+"'")
+		}
+	}
+	if len(inValues) == 0 {
+		return result
+	}
+
+	// Paso 1: Obtener la información base de cada ID actual (se usa la columna tarea)
+	queryInfo := fmt.Sprintf(`
+		SELECT id_tarea_generada, codigo_activo, tarea, parte, zona_maquina
+		FROM tareas_solicitadas_activos
+		WHERE id_tarea_generada IN (%s)
+	`, strings.Join(inValues, ","))
+
+	rows, err := r.admonDB.Query(queryInfo)
+	if err != nil {
+		log.Printf("[WARN] resolverIDsAnteriores - paso 1: %v", err)
+		return result
+	}
+	defer rows.Close()
+
+	type infoID struct{ bus, tarea, parte, zonaMaquina string }
+	infoMap := make(map[string]infoID) // idActual -> info
+	for rows.Next() {
+		var id string
+		var bus, tarea, parte, zonaMaquina sql.NullString
+		if err := rows.Scan(&id, &bus, &tarea, &parte, &zonaMaquina); err != nil {
+			continue
+		}
+		infoMap[id] = infoID{
+			bus:         strings.TrimSpace(bus.String),
+			tarea:       strings.TrimSpace(tarea.String),
+			parte:       strings.TrimSpace(parte.String),
+			zonaMaquina: strings.TrimSpace(zonaMaquina.String),
+		}
+	}
+
+	if len(infoMap) == 0 {
+		return result
+	}
+
+	// Paso 2: Para cada combinación única bus+tarea+parte+zona, obtener el ID mínimo ABIERTO
+	type claveGrupo struct{ bus, tarea, parte, zonaMaquina string }
+	grupoPorClave := make(map[claveGrupo][]string) // clave -> IDs actuales que pertenecen
+	for idActual, info := range infoMap {
+		clave := claveGrupo{
+			bus:         info.bus,
+			tarea:       info.tarea,
+			parte:       info.parte,
+			zonaMaquina: info.zonaMaquina,
+		}
+		grupoPorClave[clave] = append(grupoPorClave[clave], idActual)
+	}
+
+	for clave, idsActuales := range grupoPorClave {
+		// Consultar el ID menor (mínimo) en estado ABIERTA filtrando por la tarea exacta
+		queryIDs := `
+			SELECT id_tarea_generada
+			FROM tareas_solicitadas_activos
+			WHERE codigo_activo = ? 
+			  AND tarea = ? 
+			  AND parte = ? 
+			  AND zona_maquina = ? 
+			  AND estado_tarea = 'ABIERTA'
+			ORDER BY CAST(id_tarea_generada AS UNSIGNED) ASC
+			LIMIT 1
+		`
+		var idMinimo sql.NullString
+		err := r.admonDB.QueryRow(queryIDs, clave.bus, clave.tarea, clave.parte, clave.zonaMaquina).Scan(&idMinimo)
+		if err != nil {
+			if err != sql.ErrNoRows {
+				log.Printf("[WARN] resolverIDsAnteriores - paso 2: %v", err)
+			}
+			continue
+		}
+
+		if idMinimo.Valid && idMinimo.String != "" {
+			for _, idActual := range idsActuales {
+				result[idActual] = idMinimo.String
+				log.Printf("[DEBUG] resolverIDsAnteriores: %s -> %s (bus=%s, tarea=%s, parte=%s, zona=%s)",
+					idActual, idMinimo.String, clave.bus, clave.tarea, clave.parte, clave.zonaMaquina)
+			}
+		}
+	}
+
+	return result
+}
+
 func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[string]DatosExcelAdmon, error) {
 	start := time.Now()
 	log.Printf("[DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: %d", len(tareasAbiertas))
@@ -514,6 +617,44 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 
 	if len(inValues) == 0 {
 		return nil, fmt.Errorf("no se encontraron IDs válidos para procesar")
+	}
+
+	// Resolver el ID anterior por bus+tarea para cada ID extraido
+	// Cuando existe un ID anterior, se usa ese para la query de Admon (datos históricos de la tarea previa)
+	idsOriginales := make([]string, 0, len(idSet))
+	for id := range idSet {
+		idsOriginales = append(idsOriginales, id)
+	}
+	idAnterioresMap := r.resolverIDsAnteriores(idsOriginales)
+
+	// Reconstruir inValues usando el ID anterior cuando exista
+	// El mapa idOriginal -> idFinal nos permite hacer la query y luego devolver
+	// el resultado indexado por el ID ORIGINAL (para que el frontend encuentre los datos)
+	idOriginalAFinal := make(map[string]string) // idOriginal -> idFinal a consultar
+	idFinalAOriginal := make(map[string]string) // idFinal -> idOriginal (para re-indexar)
+	for idOrig := range idSet {
+		if idAnt, ok := idAnterioresMap[idOrig]; ok {
+			idOriginalAFinal[idOrig] = idAnt
+			idFinalAOriginal[idAnt] = idOrig
+		} else {
+			idOriginalAFinal[idOrig] = idOrig
+			idFinalAOriginal[idOrig] = idOrig
+		}
+	}
+
+	// Construir inValues con los IDs resueltos (anteriores o actuales)
+	inValuesResueltos := make([]string, 0, len(idOriginalAFinal))
+	idsResueltoSet := make(map[string]struct{})
+	for _, idFinal := range idOriginalAFinal {
+		if _, err := strconv.ParseInt(idFinal, 10, 64); err == nil {
+			if _, dup := idsResueltoSet[idFinal]; !dup {
+				inValuesResueltos = append(inValuesResueltos, "'"+idFinal+"'")
+				idsResueltoSet[idFinal] = struct{}{}
+			}
+		}
+	}
+	if len(inValuesResueltos) > 0 {
+		inValues = inValuesResueltos
 	}
 
 	// --- Pre-cargar tablas de lookup en memoria (evitar JOINs en la query principal) ---
@@ -843,8 +984,21 @@ func (r *mysqlRepository) GetPartesParaExcel(tareasAbiertas []string) (map[strin
 		}
 	}
 
+	// Re-indexar resultado: el mapa tiene clave = idFinal (el anterior consultado),
+	// pero el frontend espera la clave = idOriginal (el que viene en tarea_abierta_posterior).
+	// Solo se hace el swap cuando los IDs difieren.
+	resultadoReindexado := make(map[string]DatosExcelAdmon, len(resultado))
+	for idFinal, datos := range resultado {
+		idOrig, ok := idFinalAOriginal[idFinal]
+		if ok && idOrig != idFinal {
+			resultadoReindexado[idOrig] = datos
+		} else {
+			resultadoReindexado[idFinal] = datos
+		}
+	}
+
 	log.Printf("[DEBUG] [FIN] GetPartesParaExcel - Proceso completo en %v. Filas finales: %d", time.Since(start), count)
-	return resultado, nil
+	return resultadoReindexado, nil
 }
 
 // cargarMapaCausaBasica carga toda la tabla causa_basica en un mapa nombre(UPPER) -> codigo.

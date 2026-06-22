@@ -282,22 +282,29 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
 
                 // Agrupar por bus usando busTask
                 const tareasPorBusYTabla: Record<string, { 1: TareaData[]; 2: TareaData[]; 3: TareaData[]; 4: TareaData[] }> = {};
-                busTask.forEach(bt => {
+                busTask.forEach((bt: any) => {
                     let lista: any[] = [];
                     if (bt.tablaIndex === 1) lista = lubricacionMotor;
                     else if (bt.tablaIndex === 2) lista = engrase;
                     else if (bt.tablaIndex === 3) lista = diagnostico;
                     else if (bt.tablaIndex === 4) lista = lubricacionChasis;
 
-                    // Buscar por tarea_abierta_posterior (único) o fallback a bus+tarea
-                    const idx = bt.tarea_abierta_posterior
-                        ? lista.findIndex((d: any) => d.tarea_abierta_posterior === bt.tarea_abierta_posterior)
-                        : lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+                    let idx: number;
+                    // Usar filaIndex guardado si existe (más preciso, evita colisiones con tareas duplicadas)
+                    if (bt.filaIndex !== undefined && lista[bt.filaIndex] &&
+                        lista[bt.filaIndex].bus === bt.bus) {
+                        idx = bt.filaIndex;
+                    } else if (bt.tarea_abierta_posterior) {
+                        idx = lista.findIndex((d: any) => d.tarea_abierta_posterior === bt.tarea_abierta_posterior);
+                    } else {
+                        idx = lista.findIndex((d: any) => d.bus === bt.bus && d.tarea === bt.tarea);
+                    }
+
                     if (idx === -1) return;
                     const item = lista[idx];
                     if (!item || item.isPlaceholder) return;
 
-                    // Construir rowId igual que en DashboardGrid: ${tablaIndex}-${filaIndex}
+                    // rowId exacto: ${tablaIndex}-${filaIndex} tal como se generó en DashboardGrid
                     const rowId = `${bt.tablaIndex}-${idx}`;
 
                     if (!tareasPorBusYTabla[item.bus]) {
@@ -385,6 +392,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                             'PORCENTAJE DURACION': parteInfo?.porcentaje_duracion ?? '',
                             'USUARIO CREADOR': parteInfo?.usuario_creador ?? '',
                             'ID TAREA SOLICITADA': parteInfo?.id_tarea_solicitada ?? '',
+                            'ID TAREA SSOLICITADA VIEJA': idAdmon ?? '',
                             'FECHA SOLICITUD NOVEDAD': parteInfo?.fecha_solicitud_novedad ?? '',
                             'REFERENCIA INTELIGENTE PARTE': parteInfo?.referencia_inteligente ?? '',
                             'VALOR MIN VARIABLE': parteInfo?.valor_min_variable ?? '',
@@ -424,7 +432,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 'VALOR VARIABLE (COLUMNA EDITABLE)', 'NRO REVISION', 'NRO NOVEDAD',
                 'NOVEDAD', 'EMPLEADO REPORTA NOVEDAD', 'OBSERVACION NOVEDAD',
                 'MOTIVO CAUSA PARADA', 'DURACION', 'PORCENTAJE DURACION',
-                'USUARIO CREADOR', 'ID TAREA SOLICITADA', 'FECHA SOLICITUD NOVEDAD',
+                'USUARIO CREADOR', 'ID TAREA SOLICITADA', 'ID TAREA SSOLICITADA VIEJA', 'FECHA SOLICITUD NOVEDAD',
                 'ESTADO OPERATIVIDAD',
                 'TAXONOMIA-1', 'TAXONOMIA-2', 'TAXONOMIA-3',
                 'TAXONOMIA-4', 'TAXONOMIA-5', 'TAXONOMIA-6',
@@ -442,7 +450,7 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                 { wch: 20 }, { wch: 20 }, { wch: 40 }, { wch: 20 },
                 { wch: 20 }, { wch: 20 }, { wch: 40 }, { wch: 30 },
                 { wch: 40 }, { wch: 40 }, { wch: 15 }, { wch: 20 },
-                { wch: 25 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
+                { wch: 25 }, { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 20 },
                 { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 30 },
                 { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 30 },
                 { wch: 30 }, { wch: 30 }, { wch: 20 }

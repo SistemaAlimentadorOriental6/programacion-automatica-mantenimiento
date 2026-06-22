@@ -929,7 +929,8 @@ export default function DashboardGrid() {
     useEffect(() => {
         // Construir identificadores bus+tarea para persistencia entre días
         const buildBusTask = () => {
-            const result: Array<{ bus: string, tarea: string, tablaIndex: number, tarea_abierta_posterior?: string }> = [];
+            // filaIndex se incluye para construir el rowId exacto en la exportación
+            const result: Array<{ bus: string, tarea: string, tablaIndex: number, filaIndex: number, tarea_abierta_posterior?: string }> = [];
             selectedRows.forEach(key => {
                 const [tIdx, fIdx] = key.split('-').map(Number);
                 let data: any[] = [];
@@ -939,7 +940,7 @@ export default function DashboardGrid() {
                 else if (tIdx === 4) data = lubricacionChasisData;
                 const item = data[fIdx];
                 if (item && !item.isPlaceholder && item.tarea) {
-                    result.push({ bus: item.bus, tarea: item.tarea, tablaIndex: tIdx, tarea_abierta_posterior: item.tarea_abierta_posterior });
+                    result.push({ bus: item.bus, tarea: item.tarea, tablaIndex: tIdx, filaIndex: fIdx, tarea_abierta_posterior: item.tarea_abierta_posterior });
                 }
             });
             return result;
