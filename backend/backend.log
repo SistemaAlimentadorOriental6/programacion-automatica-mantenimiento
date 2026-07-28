@@ -23667,3 +23667,669 @@
 2026/07/28 08:35:16 repository.go:1263: [DEBUG] BUS226 DÍAS OPERADOS: valor base=3466 + 8 días = 3474
 2026/07/28 08:35:16 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 15.3591589s. Filas finales: 45
 [08:35:00] 200 -    15.363979s POST /api/reports/partes-excel
+2026/07/28 15:33:51 main.go:24: --- Iniciando servidor backend ---
+2026/07/28 15:33:52 server.go:71: Servidor iniciado en puerto 4000
+[15:34:09] 204 -            0s OPTIONS /api/auth/login
+2026/07/28 15:34:10 service.go:31: [INFO] Intento de login para: daniel.salazar@sao6.com.co
+2026/07/28 15:34:10 repository.go:29: [DEBUG] Consultando usuario - Email: [daniel.salazar@sao6.com.co], Password: [1152469577]
+2026/07/28 15:34:10 repository.go:39: [DEBUG] Usuario encontrado: {FEmailContacto:daniel.salazar@sao6.com.co FNitEmpl:1152469577 FDescCargo:ANALISTA DE MANTENIMIENTO FNdc:1 FParametro:3         }
+[15:34:09] 200 -     65.2623ms POST /api/auth/login
+[15:34:11] 204 -            0s OPTIONS /api/auth/get-data
+2026/07/28 15:34:11 repository.go:51: [DEBUG] Obteniendo info de perfil para: [daniel.salazar@sao6.com.co]
+[15:34:11] 200 -    279.7532ms GET /api/auth/get-data
+[15:34:11] 204 -            0s OPTIONS /api/reports/lubricacion
+[15:34:11] 204 -            0s OPTIONS /api/reports/diagnostico
+[15:34:11] 204 -            0s OPTIONS /api/reports/engrase
+2026/07/28 15:34:13 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 77.8269ms para 194 IDs
+[15:34:11] 200 -    810.0314ms GET /api/reports/diagnostico
+2026/07/28 15:34:13 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 62.6908ms para 104 IDs
+[15:34:12] 200 -    665.5938ms GET /api/reports/engrase
+2026/07/28 15:34:13 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 177.3144ms para 533 IDs
+[15:34:11] 200 -    1.2606512s GET /api/reports/lubricacion
+[15:34:20] 204 -            0s OPTIONS /api/reports/responsables
+[15:34:20] 204 -            0s OPTIONS /api/reports/tecnicos
+[15:34:20] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/07/28 15:34:20 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 49
+2026/07/28 15:34:20 repository.go:602: [DEBUG] IDs extraídos para consulta: map[795157:{} 895608:{} 895665:{} 900462:{} 906270:{} 910120:{} 913903:{} 915215:{} 915678:{} 915692:{} 916311:{} 917218:{} 917647:{} 917660:{} 917708:{} 917843:{} 918403:{} 918590:{} 918774:{} 918809:{} 919034:{} 919049:{} 920778:{} 921197:{} 921668:{} 921757:{} 923701:{} 924180:{} 924394:{} 926021:{} 926772:{} 926869:{} 929003:{} 931072:{} 931293:{} 933855:{} 933856:{} 933857:{} 938972:{} 938975:{} 939015:{} 939024:{} 945442:{} 947731:{} 947734:{} 947736:{} 947741:{} 948149:{} 948615:{}]
+[15:34:20] 200 -    101.3515ms GET /api/reports/tecnicos
+[15:34:20] 200 -     500.466ms GET /api/reports/responsables
+2026/07/28 15:34:21 repository.go:575: [DEBUG] resolverIDsAnteriores: 900462 -> 900462 (bus=BUS140, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:21 repository.go:575: [DEBUG] resolverIDsAnteriores: 939024 -> 939024 (bus=BUS200, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:22 repository.go:575: [DEBUG] resolverIDsAnteriores: 913903 -> 913903 (bus=BUS002, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:22 repository.go:575: [DEBUG] resolverIDsAnteriores: 917660 -> 917660 (bus=BUS054, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:22 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 16
+2026/07/28 15:34:22 repository.go:602: [DEBUG] IDs extraídos para consulta: map[895421:{} 895633:{} 898697:{} 909657:{} 912562:{} 914769:{} 914777:{} 915328:{} 915366:{} 915742:{} 915843:{} 915899:{} 921620:{} 923679:{} 933461:{} 936606:{}]
+2026/07/28 15:34:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 931293 -> 931293 (bus=BUS183, tarea=ALISTAMIENTO PROFUNDO BUS NPR REWARD CON CARROCERIA BUSSCAR, parte=BUS NPR REWARD CON CARROCERIA BUSSCAR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 914769 -> 914769 (bus=BUS048, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 918403 -> 918403 (bus=BUS101, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 933856 -> 933856 (bus=BUS110, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 895633 -> 895633 (bus=BUS156, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:24 repository.go:575: [DEBUG] resolverIDsAnteriores: 947731 -> 947731 (bus=BUS108, tarea=CAMBIAR CABLES ALTA BUJIA MOTOR RUNNER, parte=CABLES ALTA BUJIA MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:24 repository.go:575: [DEBUG] resolverIDsAnteriores: 912562 -> 912562 (bus=BUS126, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:24 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 4
+2026/07/28 15:34:24 repository.go:602: [DEBUG] IDs extraídos para consulta: map[909963:{} 910144:{} 910169:{} 941760:{}]
+2026/07/28 15:34:24 repository.go:575: [DEBUG] resolverIDsAnteriores: 915843 -> 915843 (bus=BUS062, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:24 repository.go:575: [DEBUG] resolverIDsAnteriores: 938975 -> 938975 (bus=BUS054, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:25 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 49
+2026/07/28 15:34:25 repository.go:602: [DEBUG] IDs extraídos para consulta: map[795157:{} 895421:{} 895608:{} 895633:{} 895665:{} 898697:{} 900462:{} 909657:{} 909963:{} 910120:{} 910144:{} 910169:{} 912562:{} 913903:{} 914769:{} 914777:{} 915328:{} 915692:{} 915742:{} 915843:{} 917647:{} 917660:{} 917708:{} 919034:{} 919049:{} 920778:{} 921197:{} 921620:{} 921668:{} 921757:{} 923679:{} 924394:{} 926772:{} 926869:{} 933461:{} 933855:{} 933856:{} 933857:{} 936606:{} 938972:{} 938975:{} 939015:{} 939024:{} 941760:{} 947731:{} 947734:{} 947736:{} 947741:{} 948615:{}]
+2026/07/28 15:34:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 933855 -> 933855 (bus=BUS110, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 923679 -> 923679 (bus=BUS154, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 910169 -> 910169 (bus=BUS228, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 917708 -> 917708 (bus=BUS130, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 933461 -> 933461 (bus=BUS204, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 924394 -> 924394 (bus=BUS010, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 941760 -> 941760 (bus=BUS030, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 917647 -> 917647 (bus=BUS054, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 909657 -> 909657 (bus=BUS092, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 947734 -> 909890 (bus=BUS108, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 916311 -> 916311 (bus=BUS109, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 909963 -> 909963 (bus=BUS064, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 947731 -> 947731 (bus=BUS108, tarea=CAMBIAR CABLES ALTA BUJIA MOTOR RUNNER, parte=CABLES ALTA BUJIA MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:26 repository.go:575: [DEBUG] resolverIDsAnteriores: 915742 -> 915742 (bus=BUS072, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 910144 -> 910144 (bus=BUS094, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 948149 -> 948149 (bus=BUS125, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 915328 -> 915328 (bus=BUS136, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 915328 -> 915328 (bus=BUS136, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 919049 -> 919049 (bus=BUS052, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 920778 -> 920778 (bus=BUS032, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 895421 -> 895421 (bus=BUS096, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 921757 -> 921757 (bus=BUS026, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:28 repository.go:720: [DEBUG] Query Admon completada en 95.7449ms
+2026/07/28 15:34:28 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (4 filas). Iniciando consulta de variables...
+2026/07/28 15:34:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 917708 -> 917708 (bus=BUS130, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 915366 -> 915366 (bus=BUS234, tarea=ALISTAMIENTO PROFUNDO BUS AGRALE 8.7 CON CARROCERÍA SENIOR, parte=BUS AGRALE 8.7 CON CARROCERÍA SENIOR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 918774 -> 918774 (bus=BUS025, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:28 repository.go:1126: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 4 pendientes
+2026/07/28 15:34:28 repository.go:919: [DEBUG] Consulta de variables completada en 703.2555ms
+2026/07/28 15:34:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 895608 -> 895608 (bus=BUS110, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 921620 -> 921620 (bus=BUS202, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 918809 -> 918809 (bus=BUS250, tarea=ALISTAMIENTO PROFUNDO BUS AGRALE 8.7 CON CARROCERÍA SENIOR, parte=BUS AGRALE 8.7 CON CARROCERÍA SENIOR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 910169 -> 910169 (bus=BUS228, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 936606 -> 936606 (bus=BUS068, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 931072 -> 931072 (bus=BUS003, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 939015 -> 939015 (bus=BUS238, tarea=LIMPIAR RESPIRADERO ACEITE MOTOR AGRALE, parte=RESPIRADERO ACEITE MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 914777 -> 914777 (bus=BUS112, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 906270 -> 906270 (bus=BUS153, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:29 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.1004093s
+2026/07/28 15:34:29 repository.go:972: [DEBUG] Calculando DÍAS OPERADOS para 4 buses
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 938975 -> 938975 (bus=BUS054, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 898697 -> 898697 (bus=BUS212, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 947741 -> 909896 (bus=BUS108, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 915843 -> 915843 (bus=BUS062, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 915899 -> 915899 (bus=BUS190, tarea=ALISTAMIENTO PROFUNDO BUS NPR REWARD CON CARROCERIA BUSSCAR, parte=BUS NPR REWARD CON CARROCERIA BUSSCAR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 947734 -> 909890 (bus=BUS108, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:1263: [DEBUG] BUS030 DÍAS OPERADOS: valor base=4503 + 8 días = 4511
+2026/07/28 15:34:30 repository.go:1263: [DEBUG] BUS064 DÍAS OPERADOS: valor base=4395 + 8 días = 4403
+2026/07/28 15:34:30 repository.go:1263: [DEBUG] BUS094 DÍAS OPERADOS: valor base=4403 + 8 días = 4411
+2026/07/28 15:34:30 repository.go:1263: [DEBUG] BUS228 DÍAS OPERADOS: valor base=3550 + 8 días = 3558
+2026/07/28 15:34:30 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 6.5824234s. Filas finales: 4
+[15:34:23] 200 -    6.5829322s POST /api/reports/partes-excel
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 919049 -> 919049 (bus=BUS052, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 917843 -> 917843 (bus=BUS241, tarea=ALISTAMIENTO PROFUNDO BUS AGRALE 8.7 CON CARROCERÍA SENIOR, parte=BUS AGRALE 8.7 CON CARROCERÍA SENIOR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:31 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:34:31 repository.go:575: [DEBUG] resolverIDsAnteriores: 921668 -> 921668 (bus=BUS076, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:31 repository.go:575: [DEBUG] resolverIDsAnteriores: 948615 -> 948615 (bus=BUS095, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:31 repository.go:720: [DEBUG] Query Admon completada en 88.3464ms
+2026/07/28 15:34:31 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (16 filas). Iniciando consulta de variables...
+2026/07/28 15:34:31 repository.go:1126: [DEBUG] getBatch: variables resueltas para 0 combinaciones de 16 pendientes
+2026/07/28 15:34:31 repository.go:919: [DEBUG] Consulta de variables completada en 261.3044ms
+2026/07/28 15:34:31 repository.go:575: [DEBUG] resolverIDsAnteriores: 895665 -> 895665 (bus=BUS004, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:31 repository.go:575: [DEBUG] resolverIDsAnteriores: 933461 -> 933461 (bus=BUS204, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:32 repository.go:575: [DEBUG] resolverIDsAnteriores: 939024 -> 939024 (bus=BUS200, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:32 repository.go:575: [DEBUG] resolverIDsAnteriores: 918590 -> 918590 (bus=BUS260, tarea=ALISTAMIENTO PROFUNDO BUS AGRALE 8.7 CON CARROCERÍA SENIOR, parte=BUS AGRALE 8.7 CON CARROCERÍA SENIOR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:32 repository.go:575: [DEBUG] resolverIDsAnteriores: 910144 -> 910144 (bus=BUS094, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:32 repository.go:575: [DEBUG] resolverIDsAnteriores: 795157 -> 795157 (bus=BUS110, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:32 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.147419s
+2026/07/28 15:34:32 repository.go:972: [DEBUG] Calculando DÍAS OPERADOS para 16 buses
+2026/07/28 15:34:33 repository.go:575: [DEBUG] resolverIDsAnteriores: 895421 -> 895421 (bus=BUS096, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:33 repository.go:575: [DEBUG] resolverIDsAnteriores: 910120 -> 910120 (bus=BUS020, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:33 repository.go:575: [DEBUG] resolverIDsAnteriores: 933857 -> 933857 (bus=BUS110, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:33 repository.go:575: [DEBUG] resolverIDsAnteriores: 921197 -> 921197 (bus=BUS238, tarea=CAMBIAR FILTRO AIRE INTERNO MOTOR AGRALE, parte=FILTRO AIRE INTERNO MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS048 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS062 DÍAS OPERADOS: valor base=4394 + 8 días = 4402
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS068 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS072 DÍAS OPERADOS: valor base=4522 + 8 días = 4530
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS092 DÍAS OPERADOS: valor base=4461 + 8 días = 4469
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS096 DÍAS OPERADOS: valor base=4444 + 8 días = 4452
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS112 DÍAS OPERADOS: valor base=4423 + 8 días = 4431
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS126 DÍAS OPERADOS: valor base=4404 + 8 días = 4412
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS136 DÍAS OPERADOS: valor base=4242 + 8 días = 4250
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS154 DÍAS OPERADOS: valor base=4275 + 8 días = 4283
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS156 DÍAS OPERADOS: valor base=3597 + 8 días = 3605
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS190 DÍAS OPERADOS: valor base=4102 + 8 días = 4110
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS202 DÍAS OPERADOS: valor base=3492 + 8 días = 3500
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS204 DÍAS OPERADOS: valor base=3618 + 8 días = 3626
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS212 DÍAS OPERADOS: valor base=3556 + 8 días = 3564
+2026/07/28 15:34:33 repository.go:1263: [DEBUG] BUS234 DÍAS OPERADOS: valor base=2890 + 8 días = 2898
+2026/07/28 15:34:33 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 11.1094909s. Filas finales: 16
+[15:34:22] 200 -   11.1094909s POST /api/reports/partes-excel
+2026/07/28 15:34:34 repository.go:575: [DEBUG] resolverIDsAnteriores: 923701 -> 923701 (bus=BUS197, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:34 repository.go:575: [DEBUG] resolverIDsAnteriores: 912562 -> 912562 (bus=BUS126, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:34 repository.go:575: [DEBUG] resolverIDsAnteriores: 926021 -> 926021 (bus=BUS021, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:34 repository.go:575: [DEBUG] resolverIDsAnteriores: 919034 -> 919034 (bus=BUS099, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 895608 -> 895608 (bus=BUS110, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 900462 -> 900462 (bus=BUS140, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 795157 -> 795157 (bus=BUS110, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 947736 -> 909892 (bus=BUS108, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 917660 -> 917660 (bus=BUS054, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 933857 -> 933857 (bus=BUS110, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 938972 -> 938972 (bus=BUS054, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 933856 -> 933856 (bus=BUS110, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 947741 -> 909896 (bus=BUS108, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 915678 -> 915677 (bus=BUS239, tarea=ALISTAMIENTO PROFUNDO BUS AGRALE 8.7 CON CARROCERÍA SENIOR, parte=BUS AGRALE 8.7 CON CARROCERÍA SENIOR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 924394 -> 924394 (bus=BUS010, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 913903 -> 913903 (bus=BUS002, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 921197 -> 921197 (bus=BUS238, tarea=CAMBIAR FILTRO AIRE INTERNO MOTOR AGRALE, parte=FILTRO AIRE INTERNO MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 915692 -> 915692 (bus=BUS074, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 923679 -> 923679 (bus=BUS154, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 917218 -> 917218 (bus=BUS027, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 933855 -> 933855 (bus=BUS110, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 929003 -> 929003 (bus=BUS013, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 909657 -> 909657 (bus=BUS092, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 924180 -> 924180 (bus=BUS243, tarea=ALISTAMIENTO PROFUNDO BUS AGRALE 8.7 CON CARROCERÍA SENIOR, parte=BUS AGRALE 8.7 CON CARROCERÍA SENIOR, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 921668 -> 921668 (bus=BUS076, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 909963 -> 909963 (bus=BUS064, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 945442 -> 945442 (bus=BUS061, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 926869 -> 926869 (bus=BUS140, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 915215 -> 915215 (bus=BUS095, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 910120 -> 910120 (bus=BUS020, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 936606 -> 936606 (bus=BUS068, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 926772 -> 926772 (bus=BUS086, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 926869 -> 926869 (bus=BUS140, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 895665 -> 895665 (bus=BUS004, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 939015 -> 939015 (bus=BUS238, tarea=LIMPIAR RESPIRADERO ACEITE MOTOR AGRALE, parte=RESPIRADERO ACEITE MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 915742 -> 915742 (bus=BUS072, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 919034 -> 919034 (bus=BUS099, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 917647 -> 917647 (bus=BUS054, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 938972 -> 938972 (bus=BUS054, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 920778 -> 920778 (bus=BUS032, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 921620 -> 921620 (bus=BUS202, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 895633 -> 895633 (bus=BUS156, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:44 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:34:44 repository.go:575: [DEBUG] resolverIDsAnteriores: 898697 -> 898697 (bus=BUS212, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:44 repository.go:720: [DEBUG] Query Admon completada en 347.914ms
+2026/07/28 15:34:44 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (49 filas). Iniciando consulta de variables...
+2026/07/28 15:34:44 repository.go:575: [DEBUG] resolverIDsAnteriores: 914769 -> 914769 (bus=BUS048, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS010 HORA_MOTOR: valor base=60764 + 1 días x 16h = 60780
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS020 HORA_MOTOR: valor base=48362 + 2 días x 16h = 48394
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS054 HORA_MOTOR: valor base=59867 + 9 días x 16h = 60011
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS095 HORA_MOTOR: valor base=59145 + 1 días x 16h = 59161
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS099 HORA_MOTOR: valor base=62708 + 2 días x 16h = 62740
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS108 HORA_MOTOR: valor base=55056 + 15 días x 16h = 55296
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS110 HORA_MOTOR: valor base=60530 + 2 días x 16h = 60562
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS140 HORA_MOTOR: valor base=56403 + 2 días x 16h = 56435
+2026/07/28 15:34:44 repository.go:1120: [DEBUG] BUS238 HORA_MOTOR: valor base=45701 + 2 días x 16h = 45733
+2026/07/28 15:34:44 repository.go:1126: [DEBUG] getBatch: variables resueltas para 9 combinaciones de 39 pendientes
+2026/07/28 15:34:44 repository.go:919: [DEBUG] Consulta de variables completada en 229.915ms
+2026/07/28 15:34:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 926772 -> 926772 (bus=BUS086, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 941760 -> 941760 (bus=BUS030, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 915692 -> 915692 (bus=BUS074, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:46 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.2856827s
+2026/07/28 15:34:46 repository.go:972: [DEBUG] Calculando DÍAS OPERADOS para 30 buses
+2026/07/28 15:34:46 repository.go:575: [DEBUG] resolverIDsAnteriores: 947736 -> 909892 (bus=BUS108, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:46 repository.go:575: [DEBUG] resolverIDsAnteriores: 921757 -> 921757 (bus=BUS026, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:47 repository.go:575: [DEBUG] resolverIDsAnteriores: 914777 -> 914777 (bus=BUS112, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS002 DÍAS OPERADOS: valor base=4529 + 8 días = 4537
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS003 DÍAS OPERADOS: valor base=4430 + 8 días = 4438
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS004 DÍAS OPERADOS: valor base=4510 + 8 días = 4518
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS013 DÍAS OPERADOS: valor base=4488 + 8 días = 4496
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS021 DÍAS OPERADOS: valor base=4453 + 8 días = 4461
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS025 DÍAS OPERADOS: valor base=4497 + 8 días = 4505
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS026 DÍAS OPERADOS: valor base=4426 + 8 días = 4434
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS027 DÍAS OPERADOS: valor base=4504 + 8 días = 4512
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS032 DÍAS OPERADOS: valor base=4464 + 8 días = 4472
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS052 DÍAS OPERADOS: valor base=4445 + 8 días = 4453
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS054 DÍAS OPERADOS: valor base=4493 + 8 días = 4501
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS061 DÍAS OPERADOS: valor base=4456 + 8 días = 4464
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS074 DÍAS OPERADOS: valor base=4452 + 8 días = 4460
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS076 DÍAS OPERADOS: valor base=4385 + 8 días = 4393
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS086 DÍAS OPERADOS: valor base=4283 + 8 días = 4291
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS095 DÍAS OPERADOS: valor base=4408 + 8 días = 4416
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS101 DÍAS OPERADOS: valor base=4372 + 8 días = 4380
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS109 DÍAS OPERADOS: valor base=4365 + 8 días = 4373
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS110 DÍAS OPERADOS: valor base=4471 + 8 días = 4479
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS125 DÍAS OPERADOS: valor base=4432 + 8 días = 4440
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS130 DÍAS OPERADOS: valor base=4382 + 8 días = 4390
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS153 DÍAS OPERADOS: valor base=4443 + 8 días = 4451
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS183 DÍAS OPERADOS: valor base=4217 + 8 días = 4225
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS197 DÍAS OPERADOS: valor base=3564 + 8 días = 3572
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS200 DÍAS OPERADOS: valor base=3320 + 8 días = 3328
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS239 DÍAS OPERADOS: valor base=2953 + 8 días = 2961
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS241 DÍAS OPERADOS: valor base=2815 + 8 días = 2823
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS243 DÍAS OPERADOS: valor base=2968 + 8 días = 2976
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS250 DÍAS OPERADOS: valor base=2809 + 8 días = 2817
+2026/07/28 15:34:47 repository.go:1263: [DEBUG] BUS260 DÍAS OPERADOS: valor base=2606 + 8 días = 2614
+2026/07/28 15:34:47 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 26.40072s. Filas finales: 49
+[15:34:20] 200 -   26.4020171s POST /api/reports/partes-excel
+2026/07/28 15:34:47 repository.go:575: [DEBUG] resolverIDsAnteriores: 948615 -> 948615 (bus=BUS095, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:34:48 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:34:48 repository.go:720: [DEBUG] Query Admon completada en 67.1186ms
+2026/07/28 15:34:48 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (49 filas). Iniciando consulta de variables...
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS010 HORA_MOTOR: valor base=60764 + 1 días x 16h = 60780
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS020 HORA_MOTOR: valor base=48362 + 2 días x 16h = 48394
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS054 HORA_MOTOR: valor base=59867 + 9 días x 16h = 60011
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS095 HORA_MOTOR: valor base=59145 + 1 días x 16h = 59161
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS099 HORA_MOTOR: valor base=62708 + 2 días x 16h = 62740
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS108 HORA_MOTOR: valor base=55056 + 15 días x 16h = 55296
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS110 HORA_MOTOR: valor base=60530 + 2 días x 16h = 60562
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS140 HORA_MOTOR: valor base=56403 + 2 días x 16h = 56435
+2026/07/28 15:34:48 repository.go:1120: [DEBUG] BUS238 HORA_MOTOR: valor base=45701 + 2 días x 16h = 45733
+2026/07/28 15:34:48 repository.go:1126: [DEBUG] getBatch: variables resueltas para 9 combinaciones de 39 pendientes
+2026/07/28 15:34:48 repository.go:919: [DEBUG] Consulta de variables completada en 244.3279ms
+2026/07/28 15:34:50 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.2917856s
+2026/07/28 15:34:50 repository.go:972: [DEBUG] Calculando DÍAS OPERADOS para 30 buses
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS002 DÍAS OPERADOS: valor base=4529 + 8 días = 4537
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS004 DÍAS OPERADOS: valor base=4510 + 8 días = 4518
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS026 DÍAS OPERADOS: valor base=4426 + 8 días = 4434
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS030 DÍAS OPERADOS: valor base=4503 + 8 días = 4511
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS032 DÍAS OPERADOS: valor base=4464 + 8 días = 4472
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS048 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS052 DÍAS OPERADOS: valor base=4445 + 8 días = 4453
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS054 DÍAS OPERADOS: valor base=4493 + 8 días = 4501
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS062 DÍAS OPERADOS: valor base=4394 + 8 días = 4402
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS064 DÍAS OPERADOS: valor base=4395 + 8 días = 4403
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS068 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS072 DÍAS OPERADOS: valor base=4522 + 8 días = 4530
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS074 DÍAS OPERADOS: valor base=4452 + 8 días = 4460
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS076 DÍAS OPERADOS: valor base=4385 + 8 días = 4393
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS086 DÍAS OPERADOS: valor base=4283 + 8 días = 4291
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS092 DÍAS OPERADOS: valor base=4461 + 8 días = 4469
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS094 DÍAS OPERADOS: valor base=4403 + 8 días = 4411
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS096 DÍAS OPERADOS: valor base=4444 + 8 días = 4452
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS110 DÍAS OPERADOS: valor base=4471 + 8 días = 4479
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS112 DÍAS OPERADOS: valor base=4423 + 8 días = 4431
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS126 DÍAS OPERADOS: valor base=4404 + 8 días = 4412
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS130 DÍAS OPERADOS: valor base=4382 + 8 días = 4390
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS136 DÍAS OPERADOS: valor base=4242 + 8 días = 4250
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS154 DÍAS OPERADOS: valor base=4275 + 8 días = 4283
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS156 DÍAS OPERADOS: valor base=3597 + 8 días = 3605
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS200 DÍAS OPERADOS: valor base=3320 + 8 días = 3328
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS202 DÍAS OPERADOS: valor base=3492 + 8 días = 3500
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS204 DÍAS OPERADOS: valor base=3618 + 8 días = 3626
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS212 DÍAS OPERADOS: valor base=3556 + 8 días = 3564
+2026/07/28 15:34:51 repository.go:1263: [DEBUG] BUS228 DÍAS OPERADOS: valor base=3550 + 8 días = 3558
+2026/07/28 15:34:51 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 26.1096526s. Filas finales: 49
+[15:34:24] 200 -   26.1149819s POST /api/reports/partes-excel
+[15:35:36] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/07/28 15:35:36 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 79
+2026/07/28 15:35:36 repository.go:602: [DEBUG] IDs extraídos para consulta: map[795157:{} 895421:{} 895608:{} 895633:{} 895665:{} 898697:{} 900462:{} 909657:{} 909963:{} 910120:{} 910144:{} 910169:{} 912562:{} 913903:{} 914769:{} 914777:{} 915328:{} 915692:{} 915742:{} 915843:{} 917647:{} 917660:{} 917708:{} 919034:{} 919049:{} 920778:{} 921197:{} 921620:{} 921668:{} 921757:{} 923679:{} 924394:{} 926772:{} 926869:{} 933461:{} 933855:{} 933856:{} 933857:{} 936606:{} 938972:{} 938975:{} 939015:{} 939024:{} 941760:{} 947731:{} 947734:{} 947736:{} 947741:{} 948615:{}]
+2026/07/28 15:35:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 933855 -> 933855 (bus=BUS110, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 915843 -> 915843 (bus=BUS062, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 921668 -> 921668 (bus=BUS076, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 895608 -> 895608 (bus=BUS110, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 913903 -> 913903 (bus=BUS002, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 895421 -> 895421 (bus=BUS096, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 912562 -> 912562 (bus=BUS126, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 939024 -> 939024 (bus=BUS200, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 941760 -> 941760 (bus=BUS030, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 923679 -> 923679 (bus=BUS154, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 917647 -> 917647 (bus=BUS054, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 947731 -> 947731 (bus=BUS108, tarea=CAMBIAR CABLES ALTA BUJIA MOTOR RUNNER, parte=CABLES ALTA BUJIA MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 919049 -> 919049 (bus=BUS052, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 947741 -> 909896 (bus=BUS108, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 914769 -> 914769 (bus=BUS048, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 921620 -> 921620 (bus=BUS202, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 926869 -> 926869 (bus=BUS140, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:44 repository.go:575: [DEBUG] resolverIDsAnteriores: 909657 -> 909657 (bus=BUS092, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:44 repository.go:575: [DEBUG] resolverIDsAnteriores: 938975 -> 938975 (bus=BUS054, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 795157 -> 795157 (bus=BUS110, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 895633 -> 895633 (bus=BUS156, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 909963 -> 909963 (bus=BUS064, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:46 repository.go:575: [DEBUG] resolverIDsAnteriores: 900462 -> 900462 (bus=BUS140, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:46 repository.go:575: [DEBUG] resolverIDsAnteriores: 938972 -> 938972 (bus=BUS054, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:46 repository.go:575: [DEBUG] resolverIDsAnteriores: 939015 -> 939015 (bus=BUS238, tarea=LIMPIAR RESPIRADERO ACEITE MOTOR AGRALE, parte=RESPIRADERO ACEITE MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:47 repository.go:575: [DEBUG] resolverIDsAnteriores: 921197 -> 921197 (bus=BUS238, tarea=CAMBIAR FILTRO AIRE INTERNO MOTOR AGRALE, parte=FILTRO AIRE INTERNO MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:47 repository.go:575: [DEBUG] resolverIDsAnteriores: 947734 -> 909890 (bus=BUS108, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 919034 -> 919034 (bus=BUS099, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 947736 -> 909892 (bus=BUS108, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 920778 -> 920778 (bus=BUS032, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 921757 -> 921757 (bus=BUS026, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 910144 -> 910144 (bus=BUS094, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:50 repository.go:575: [DEBUG] resolverIDsAnteriores: 910169 -> 910169 (bus=BUS228, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:50 repository.go:575: [DEBUG] resolverIDsAnteriores: 917708 -> 917708 (bus=BUS130, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:51 repository.go:575: [DEBUG] resolverIDsAnteriores: 898697 -> 898697 (bus=BUS212, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:51 repository.go:575: [DEBUG] resolverIDsAnteriores: 895665 -> 895665 (bus=BUS004, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:54 repository.go:575: [DEBUG] resolverIDsAnteriores: 910120 -> 910120 (bus=BUS020, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:54 repository.go:575: [DEBUG] resolverIDsAnteriores: 914777 -> 914777 (bus=BUS112, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:55 repository.go:575: [DEBUG] resolverIDsAnteriores: 926772 -> 926772 (bus=BUS086, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:55 repository.go:575: [DEBUG] resolverIDsAnteriores: 915328 -> 915328 (bus=BUS136, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:55 repository.go:575: [DEBUG] resolverIDsAnteriores: 933857 -> 933857 (bus=BUS110, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:56 repository.go:575: [DEBUG] resolverIDsAnteriores: 948615 -> 948615 (bus=BUS095, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:56 repository.go:575: [DEBUG] resolverIDsAnteriores: 917660 -> 917660 (bus=BUS054, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:35:57 repository.go:575: [DEBUG] resolverIDsAnteriores: 924394 -> 924394 (bus=BUS010, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:36:00 repository.go:575: [DEBUG] resolverIDsAnteriores: 915692 -> 915692 (bus=BUS074, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:36:00 repository.go:575: [DEBUG] resolverIDsAnteriores: 933461 -> 933461 (bus=BUS204, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:36:01 repository.go:575: [DEBUG] resolverIDsAnteriores: 933856 -> 933856 (bus=BUS110, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:36:01 repository.go:575: [DEBUG] resolverIDsAnteriores: 936606 -> 936606 (bus=BUS068, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:36:01 repository.go:575: [DEBUG] resolverIDsAnteriores: 915742 -> 915742 (bus=BUS072, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:36:02 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:36:02 repository.go:720: [DEBUG] Query Admon completada en 65.871ms
+2026/07/28 15:36:02 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (49 filas). Iniciando consulta de variables...
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS010 HORA_MOTOR: valor base=60764 + 1 días x 16h = 60780
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS020 HORA_MOTOR: valor base=48362 + 2 días x 16h = 48394
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS054 HORA_MOTOR: valor base=59867 + 9 días x 16h = 60011
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS095 HORA_MOTOR: valor base=59145 + 1 días x 16h = 59161
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS099 HORA_MOTOR: valor base=62708 + 2 días x 16h = 62740
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS108 HORA_MOTOR: valor base=55056 + 15 días x 16h = 55296
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS110 HORA_MOTOR: valor base=60530 + 2 días x 16h = 60562
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS140 HORA_MOTOR: valor base=56403 + 2 días x 16h = 56435
+2026/07/28 15:36:03 repository.go:1120: [DEBUG] BUS238 HORA_MOTOR: valor base=45701 + 2 días x 16h = 45733
+2026/07/28 15:36:03 repository.go:1126: [DEBUG] getBatch: variables resueltas para 9 combinaciones de 39 pendientes
+2026/07/28 15:36:03 repository.go:919: [DEBUG] Consulta de variables completada en 500.7624ms
+2026/07/28 15:36:04 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.377581s
+2026/07/28 15:36:04 repository.go:972: [DEBUG] Calculando DÍAS OPERADOS para 30 buses
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS002 DÍAS OPERADOS: valor base=4529 + 8 días = 4537
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS004 DÍAS OPERADOS: valor base=4510 + 8 días = 4518
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS026 DÍAS OPERADOS: valor base=4426 + 8 días = 4434
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS030 DÍAS OPERADOS: valor base=4503 + 8 días = 4511
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS032 DÍAS OPERADOS: valor base=4464 + 8 días = 4472
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS048 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS052 DÍAS OPERADOS: valor base=4445 + 8 días = 4453
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS054 DÍAS OPERADOS: valor base=4493 + 8 días = 4501
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS062 DÍAS OPERADOS: valor base=4394 + 8 días = 4402
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS064 DÍAS OPERADOS: valor base=4395 + 8 días = 4403
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS068 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS072 DÍAS OPERADOS: valor base=4522 + 8 días = 4530
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS074 DÍAS OPERADOS: valor base=4452 + 8 días = 4460
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS076 DÍAS OPERADOS: valor base=4385 + 8 días = 4393
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS086 DÍAS OPERADOS: valor base=4283 + 8 días = 4291
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS092 DÍAS OPERADOS: valor base=4461 + 8 días = 4469
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS094 DÍAS OPERADOS: valor base=4403 + 8 días = 4411
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS096 DÍAS OPERADOS: valor base=4444 + 8 días = 4452
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS110 DÍAS OPERADOS: valor base=4471 + 8 días = 4479
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS112 DÍAS OPERADOS: valor base=4423 + 8 días = 4431
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS126 DÍAS OPERADOS: valor base=4404 + 8 días = 4412
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS130 DÍAS OPERADOS: valor base=4382 + 8 días = 4390
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS136 DÍAS OPERADOS: valor base=4242 + 8 días = 4250
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS154 DÍAS OPERADOS: valor base=4275 + 8 días = 4283
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS156 DÍAS OPERADOS: valor base=3597 + 8 días = 3605
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS200 DÍAS OPERADOS: valor base=3320 + 8 días = 3328
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS202 DÍAS OPERADOS: valor base=3492 + 8 días = 3500
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS204 DÍAS OPERADOS: valor base=3618 + 8 días = 3626
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS212 DÍAS OPERADOS: valor base=3556 + 8 días = 3564
+2026/07/28 15:36:05 repository.go:1263: [DEBUG] BUS228 DÍAS OPERADOS: valor base=3550 + 8 días = 3558
+2026/07/28 15:36:05 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 28.8053346s. Filas finales: 49
+[15:35:36] 200 -   28.8059611s POST /api/reports/partes-excel
+[15:37:27] 204 -            0s OPTIONS /api/reports/partes-excel
+[15:37:27] 204 -            0s OPTIONS /api/reports/tecnicos
+[15:37:27] 204 -            0s OPTIONS /api/reports/responsables
+2026/07/28 15:37:27 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 2
+2026/07/28 15:37:27 repository.go:602: [DEBUG] IDs extraídos para consulta: map[900476:{} 926874:{}]
+2026/07/28 15:37:28 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/07/28 15:37:28 repository.go:602: [DEBUG] IDs extraídos para consulta: map[919021:{}]
+2026/07/28 15:37:28 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/07/28 15:37:28 repository.go:602: [DEBUG] IDs extraídos para consulta: map[947733:{}]
+2026/07/28 15:37:30 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/07/28 15:37:30 repository.go:602: [DEBUG] IDs extraídos para consulta: map[924391:{}]
+[15:37:27] 200 -    7.6487123s GET /api/reports/responsables
+[15:37:34] 204 -            0s OPTIONS /api/reports/partes-excel
+[15:37:34] 204 -            0s OPTIONS /api/reports/partes-excel
+[15:37:34] 204 -            0s OPTIONS /api/reports/partes-excel
+[15:37:34] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/07/28 15:37:35 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/07/28 15:37:35 repository.go:602: [DEBUG] IDs extraídos para consulta: map[882334:{}]
+[15:37:27] 200 -    8.0571235s GET /api/reports/tecnicos
+2026/07/28 15:37:35 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 3
+2026/07/28 15:37:35 repository.go:602: [DEBUG] IDs extraídos para consulta: map[947732:{} 947738:{} 947740:{}]
+2026/07/28 15:37:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 900476 -> 900476 (bus=BUS140, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 882334 -> 882334 (bus=BUS048, tarea=CAMBIAR FILTRO SECADOR DORADO RUNNER/AGRALE, parte=FILTRO SECADOR DORADO RUNNER/AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 947733 -> 947733 (bus=BUS108, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 919021 -> 919021 (bus=BUS099, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 924391 -> 924391 (bus=BUS010, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 926874 -> 926874 (bus=BUS140, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 947732 -> 947732 (bus=BUS108, tarea=CAMBIAR ACEITE TRANSMISION MINERAL MOBILTRANS HD SERIES RUNNER, parte=ACEITE TRANSMISION MINERAL MOBILTRANS HD SERIES RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:36 repository.go:575: [DEBUG] resolverIDsAnteriores: 947738 -> 909894 (bus=BUS108, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:36 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:37 repository.go:575: [DEBUG] resolverIDsAnteriores: 947740 -> 947740 (bus=BUS108, tarea=CAMBIAR FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, parte=FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:37 repository.go:720: [DEBUG] Query Admon completada en 282.3403ms
+2026/07/28 15:37:37 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/07/28 15:37:37 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:37 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:37 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:37 repository.go:1120: [DEBUG] BUS048 HORA_MOTOR: valor base=57768 + 1 días x 16h = 57784
+2026/07/28 15:37:37 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:37 repository.go:919: [DEBUG] Consulta de variables completada en 244.56ms
+2026/07/28 15:37:37 repository.go:720: [DEBUG] Query Admon completada en 86.1715ms
+2026/07/28 15:37:37 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/07/28 15:37:37 repository.go:720: [DEBUG] Query Admon completada en 145.3762ms
+2026/07/28 15:37:37 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/07/28 15:37:37 repository.go:720: [DEBUG] Query Admon completada en 151.4811ms
+2026/07/28 15:37:37 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/07/28 15:37:37 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:37 repository.go:720: [DEBUG] Query Admon completada en 131.1518ms
+2026/07/28 15:37:37 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (2 filas). Iniciando consulta de variables...
+2026/07/28 15:37:37 repository.go:1120: [DEBUG] BUS099 HORA_MOTOR: valor base=62708 + 2 días x 16h = 62740
+2026/07/28 15:37:37 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:37 repository.go:919: [DEBUG] Consulta de variables completada en 232.4041ms
+2026/07/28 15:37:38 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:38 repository.go:720: [DEBUG] Query Admon completada en 260.9185ms
+2026/07/28 15:37:38 repository.go:1120: [DEBUG] BUS108 HORA_MOTOR: valor base=55056 + 15 días x 16h = 55296
+2026/07/28 15:37:38 repository.go:1120: [DEBUG] BUS010 HORA_MOTOR: valor base=60764 + 1 días x 16h = 60780
+2026/07/28 15:37:38 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:38 repository.go:919: [DEBUG] Consulta de variables completada en 868.0466ms
+2026/07/28 15:37:38 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:38 repository.go:919: [DEBUG] Consulta de variables completada en 860.9888ms
+2026/07/28 15:37:38 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (3 filas). Iniciando consulta de variables...
+2026/07/28 15:37:38 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.0047385s
+2026/07/28 15:37:38 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 3.4699004s. Filas finales: 1
+[15:37:34] 200 -    3.4705243s POST /api/reports/partes-excel
+2026/07/28 15:37:38 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 2
+2026/07/28 15:37:38 repository.go:602: [DEBUG] IDs extraídos para consulta: map[906140:{} 906142:{}]
+2026/07/28 15:37:38 repository.go:1120: [DEBUG] BUS140 HORA_MOTOR: valor base=56403 + 2 días x 16h = 56435
+2026/07/28 15:37:38 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:38 repository.go:919: [DEBUG] Consulta de variables completada en 1.014454s
+2026/07/28 15:37:38 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 994.0758ms
+2026/07/28 15:37:38 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 10.5840258s. Filas finales: 1
+[15:37:27] 200 -   10.5840258s POST /api/reports/partes-excel
+2026/07/28 15:37:38 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 2
+2026/07/28 15:37:38 repository.go:602: [DEBUG] IDs extraídos para consulta: map[923238:{} 923244:{}]
+2026/07/28 15:37:47 repository.go:1120: [DEBUG] BUS108 HORA_MOTOR: valor base=55056 + 15 días x 16h = 55296
+2026/07/28 15:37:47 repository.go:1126: [DEBUG] getBatch: variables resueltas para 2 combinaciones de 2 pendientes
+2026/07/28 15:37:47 repository.go:919: [DEBUG] Consulta de variables completada en 9.3596136s
+2026/07/28 15:37:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 906140 -> 906140 (bus=BUS071, tarea=CAMBIAR FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, parte=FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 923238 -> 923238 (bus=BUS067, tarea=CAMBIAR FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, parte=FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:48 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 10.1638818s
+2026/07/28 15:37:48 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 19.7895378s. Filas finales: 1
+[15:37:28] 200 -   19.7895378s POST /api/reports/partes-excel
+2026/07/28 15:37:48 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 2
+2026/07/28 15:37:48 repository.go:602: [DEBUG] IDs extraídos para consulta: map[923870:{} 923877:{}]
+2026/07/28 15:37:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 906142 -> 906142 (bus=BUS071, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:48 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 9.9927706s
+2026/07/28 15:37:48 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 21.4659496s. Filas finales: 2
+[15:37:27] 200 -   21.4659496s POST /api/reports/partes-excel
+2026/07/28 15:37:48 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/07/28 15:37:48 repository.go:602: [DEBUG] IDs extraídos para consulta: map[938973:{}]
+2026/07/28 15:37:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 923244 -> 923244 (bus=BUS067, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:48 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 10.5687943s
+2026/07/28 15:37:48 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 18.1757972s. Filas finales: 1
+[15:37:30] 200 -   18.1757972s POST /api/reports/partes-excel
+2026/07/28 15:37:49 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 1
+2026/07/28 15:37:49 repository.go:602: [DEBUG] IDs extraídos para consulta: map[938974:{}]
+2026/07/28 15:37:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 923870 -> 923870 (bus=BUS240, tarea=CAMBIAR FILTRO ACEITE HIDRAULICO DIRECCION AGRALE, parte=FILTRO ACEITE HIDRAULICO DIRECCION AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 938973 -> 938973 (bus=BUS054, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 938974 -> 938974 (bus=BUS054, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 923877 -> 923877 (bus=BUS240, tarea=CAMBIAR ACEITE TRANSMISION MOBILUBE GX80W90 AGRALE, parte=ACEITE TRANSMISION MOBILUBE GX80W90 AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:49 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.711704s
+2026/07/28 15:37:49 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 14.2239685s. Filas finales: 3
+[15:37:35] 200 -   14.2239685s POST /api/reports/partes-excel
+[15:37:49] 204 -            0s OPTIONS /api/reports/partes-excel
+2026/07/28 15:37:49 repository.go:586: [DEBUG] [INICIO] GetPartesParaExcel - Tareas a procesar: 61
+2026/07/28 15:37:49 repository.go:602: [DEBUG] IDs extraídos para consulta: map[882334:{} 895421:{} 895608:{} 895633:{} 895665:{} 898697:{} 900462:{} 900476:{} 906140:{} 906142:{} 909657:{} 909963:{} 910144:{} 910169:{} 912562:{} 913903:{} 914769:{} 914777:{} 915328:{} 915692:{} 915742:{} 915843:{} 917647:{} 917660:{} 917708:{} 919021:{} 919034:{} 919049:{} 920778:{} 921197:{} 921620:{} 921668:{} 921757:{} 923238:{} 923244:{} 923679:{} 923870:{} 923877:{} 924391:{} 924394:{} 926772:{} 926869:{} 926874:{} 933461:{} 936606:{} 938972:{} 938973:{} 938974:{} 938975:{} 939015:{} 939024:{} 941760:{} 947731:{} 947732:{} 947733:{} 947734:{} 947736:{} 947738:{} 947740:{} 947741:{} 948615:{}]
+2026/07/28 15:37:49 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:49 repository.go:720: [DEBUG] Query Admon completada en 80.022ms
+2026/07/28 15:37:49 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (2 filas). Iniciando consulta de variables...
+2026/07/28 15:37:49 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:49 repository.go:1120: [DEBUG] BUS071 HORA_MOTOR: valor base=52195 + 2 días x 16h = 52227
+2026/07/28 15:37:49 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:49 repository.go:919: [DEBUG] Consulta de variables completada en 225.3287ms
+2026/07/28 15:37:49 repository.go:720: [DEBUG] Query Admon completada en 79.2059ms
+2026/07/28 15:37:50 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (2 filas). Iniciando consulta de variables...
+2026/07/28 15:37:50 repository.go:575: [DEBUG] resolverIDsAnteriores: 909657 -> 909657 (bus=BUS092, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:50 repository.go:1120: [DEBUG] BUS067 HORA_MOTOR: valor base=63969 + 2 días x 16h = 64001
+2026/07/28 15:37:50 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:50 repository.go:919: [DEBUG] Consulta de variables completada en 147.4708ms
+2026/07/28 15:37:50 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:50 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:50 repository.go:720: [DEBUG] Query Admon completada en 214.5212ms
+2026/07/28 15:37:50 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/07/28 15:37:50 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:37:50 repository.go:720: [DEBUG] Query Admon completada en 120.6046ms
+2026/07/28 15:37:50 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (2 filas). Iniciando consulta de variables...
+2026/07/28 15:37:50 repository.go:575: [DEBUG] resolverIDsAnteriores: 895608 -> 895608 (bus=BUS110, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:50 repository.go:720: [DEBUG] Query Admon completada en 147.7768ms
+2026/07/28 15:37:50 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (1 filas). Iniciando consulta de variables...
+2026/07/28 15:37:50 repository.go:1120: [DEBUG] BUS054 HORA_MOTOR: valor base=59867 + 9 días x 16h = 60011
+2026/07/28 15:37:50 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:50 repository.go:919: [DEBUG] Consulta de variables completada en 288.1874ms
+2026/07/28 15:37:51 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.2327811s
+2026/07/28 15:37:51 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 12.7039853s. Filas finales: 2
+[15:37:38] 200 -   12.7039853s POST /api/reports/partes-excel
+2026/07/28 15:37:51 repository.go:575: [DEBUG] resolverIDsAnteriores: 917660 -> 917660 (bus=BUS054, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:37:51 repository.go:1126: [DEBUG] getBatch: variables resueltas para 1 combinaciones de 1 pendientes
+2026/07/28 15:37:51 repository.go:919: [DEBUG] Consulta de variables completada en 617.5417ms
+2026/07/28 15:37:51 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.1061078s
+2026/07/28 15:37:51 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 12.5657036s. Filas finales: 2
+[15:37:38] 200 -   12.5657036s POST /api/reports/partes-excel
+2026/07/28 15:37:52 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.3323811s
+2026/07/28 15:37:52 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 3.3625625s. Filas finales: 1
+[15:37:48] 200 -    3.3625625s POST /api/reports/partes-excel
+2026/07/28 15:38:01 repository.go:1090: [ERROR] getBatchValoresVariables: invalid connection
+2026/07/28 15:38:01 repository.go:919: [DEBUG] Consulta de variables completada en 10.7261834s
+2026/07/28 15:38:04 repository.go:575: [DEBUG] resolverIDsAnteriores: 939024 -> 939024 (bus=BUS200, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:05 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 13.983705s
+2026/07/28 15:38:05 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 16.6058267s. Filas finales: 2
+[15:37:48] 200 -   16.6061702s POST /api/reports/partes-excel
+2026/07/28 15:38:05 repository.go:575: [DEBUG] resolverIDsAnteriores: 895421 -> 895421 (bus=BUS096, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:05 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 4.1052058s
+2026/07/28 15:38:05 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 16.4900239s. Filas finales: 1
+[15:37:48] 200 -    16.491002s POST /api/reports/partes-excel
+2026/07/28 15:38:05 repository.go:575: [DEBUG] resolverIDsAnteriores: 915328 -> 915328 (bus=BUS136, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:06 repository.go:575: [DEBUG] resolverIDsAnteriores: 921197 -> 921197 (bus=BUS238, tarea=CAMBIAR FILTRO AIRE INTERNO MOTOR AGRALE, parte=FILTRO AIRE INTERNO MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:06 repository.go:575: [DEBUG] resolverIDsAnteriores: 947741 -> 909896 (bus=BUS108, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:07 repository.go:575: [DEBUG] resolverIDsAnteriores: 947732 -> 947732 (bus=BUS108, tarea=CAMBIAR ACEITE TRANSMISION MINERAL MOBILTRANS HD SERIES RUNNER, parte=ACEITE TRANSMISION MINERAL MOBILTRANS HD SERIES RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:15 repository.go:575: [DEBUG] resolverIDsAnteriores: 895665 -> 895665 (bus=BUS004, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:16 repository.go:575: [DEBUG] resolverIDsAnteriores: 906142 -> 906142 (bus=BUS071, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:16 repository.go:575: [DEBUG] resolverIDsAnteriores: 919049 -> 919049 (bus=BUS052, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:16 repository.go:575: [DEBUG] resolverIDsAnteriores: 923870 -> 923870 (bus=BUS240, tarea=CAMBIAR FILTRO ACEITE HIDRAULICO DIRECCION AGRALE, parte=FILTRO ACEITE HIDRAULICO DIRECCION AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:17 repository.go:575: [DEBUG] resolverIDsAnteriores: 926874 -> 926874 (bus=BUS140, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:17 repository.go:575: [DEBUG] resolverIDsAnteriores: 947731 -> 947731 (bus=BUS108, tarea=CAMBIAR CABLES ALTA BUJIA MOTOR RUNNER, parte=CABLES ALTA BUJIA MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:17 repository.go:575: [DEBUG] resolverIDsAnteriores: 882334 -> 882334 (bus=BUS048, tarea=CAMBIAR FILTRO SECADOR DORADO RUNNER/AGRALE, parte=FILTRO SECADOR DORADO RUNNER/AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:18 repository.go:575: [DEBUG] resolverIDsAnteriores: 898697 -> 898697 (bus=BUS212, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:18 repository.go:575: [DEBUG] resolverIDsAnteriores: 920778 -> 920778 (bus=BUS032, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:22 repository.go:575: [DEBUG] resolverIDsAnteriores: 947740 -> 947740 (bus=BUS108, tarea=CAMBIAR FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, parte=FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:22 repository.go:575: [DEBUG] resolverIDsAnteriores: 926869 -> 926869 (bus=BUS140, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:22 repository.go:575: [DEBUG] resolverIDsAnteriores: 910144 -> 910144 (bus=BUS094, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 923244 -> 923244 (bus=BUS067, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 915742 -> 915742 (bus=BUS072, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:23 repository.go:575: [DEBUG] resolverIDsAnteriores: 914777 -> 914777 (bus=BUS112, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:24 repository.go:575: [DEBUG] resolverIDsAnteriores: 941760 -> 941760 (bus=BUS030, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:24 repository.go:575: [DEBUG] resolverIDsAnteriores: 906140 -> 906140 (bus=BUS071, tarea=CAMBIAR FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, parte=FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 939015 -> 939015 (bus=BUS238, tarea=LIMPIAR RESPIRADERO ACEITE MOTOR AGRALE, parte=RESPIRADERO ACEITE MOTOR AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:25 repository.go:575: [DEBUG] resolverIDsAnteriores: 900476 -> 900476 (bus=BUS140, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:27 repository.go:575: [DEBUG] resolverIDsAnteriores: 947736 -> 909892 (bus=BUS108, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 923877 -> 923877 (bus=BUS240, tarea=CAMBIAR ACEITE TRANSMISION MOBILUBE GX80W90 AGRALE, parte=ACEITE TRANSMISION MOBILUBE GX80W90 AGRALE, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:28 repository.go:575: [DEBUG] resolverIDsAnteriores: 921620 -> 921620 (bus=BUS202, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 917647 -> 917647 (bus=BUS054, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 923679 -> 923679 (bus=BUS154, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:29 repository.go:575: [DEBUG] resolverIDsAnteriores: 915843 -> 915843 (bus=BUS062, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:30 repository.go:575: [DEBUG] resolverIDsAnteriores: 919021 -> 919021 (bus=BUS099, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:32 repository.go:575: [DEBUG] resolverIDsAnteriores: 948615 -> 948615 (bus=BUS095, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:33 repository.go:575: [DEBUG] resolverIDsAnteriores: 936606 -> 936606 (bus=BUS068, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:33 repository.go:575: [DEBUG] resolverIDsAnteriores: 917708 -> 917708 (bus=BUS130, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:34 repository.go:575: [DEBUG] resolverIDsAnteriores: 895633 -> 895633 (bus=BUS156, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:34 repository.go:575: [DEBUG] resolverIDsAnteriores: 915692 -> 915692 (bus=BUS074, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 912562 -> 912562 (bus=BUS126, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:35 repository.go:575: [DEBUG] resolverIDsAnteriores: 919034 -> 919034 (bus=BUS099, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 910169 -> 910169 (bus=BUS228, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:38 repository.go:575: [DEBUG] resolverIDsAnteriores: 914769 -> 914769 (bus=BUS048, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 933461 -> 933461 (bus=BUS204, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:39 repository.go:575: [DEBUG] resolverIDsAnteriores: 947734 -> 909890 (bus=BUS108, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:40 repository.go:575: [DEBUG] resolverIDsAnteriores: 947733 -> 947733 (bus=BUS108, tarea=CAMBIAR FILTRO AIRE MOTOR RUNNER, parte=FILTRO AIRE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:41 repository.go:575: [DEBUG] resolverIDsAnteriores: 938973 -> 938973 (bus=BUS054, tarea=CAMBIAR FILTRO ACEITE MOTOR RUNNER, parte=FILTRO ACEITE MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:42 repository.go:575: [DEBUG] resolverIDsAnteriores: 900462 -> 900462 (bus=BUS140, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 909963 -> 909963 (bus=BUS064, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:43 repository.go:575: [DEBUG] resolverIDsAnteriores: 921757 -> 921757 (bus=BUS026, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:44 repository.go:575: [DEBUG] resolverIDsAnteriores: 913903 -> 913903 (bus=BUS002, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:44 repository.go:575: [DEBUG] resolverIDsAnteriores: 938975 -> 938975 (bus=BUS054, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 921668 -> 921668 (bus=BUS076, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:45 repository.go:575: [DEBUG] resolverIDsAnteriores: 926772 -> 926772 (bus=BUS086, tarea=ALISTAMIENTO PROFUNDO BUS DINA RUNNER 8G, parte=BUS DINA RUNNER 8G, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:46 repository.go:575: [DEBUG] resolverIDsAnteriores: 924394 -> 924394 (bus=BUS010, tarea=LIMPIAR GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, parte=GUARDAPOLVO TAPA CAJA FILTRO AIRE RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:47 repository.go:575: [DEBUG] resolverIDsAnteriores: 938972 -> 938972 (bus=BUS054, tarea=CAMBIAR ACEITE MOTOR GNV 15W-40, parte=ACEITE MOTOR GNV 15W-40, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 924391 -> 924391 (bus=BUS010, tarea=CAMBIAR BUJIA DENSO GK31A MOTOR RUNNER, parte=BUJIA DENSO GK31A MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 947738 -> 909894 (bus=BUS108, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:48 repository.go:575: [DEBUG] resolverIDsAnteriores: 923238 -> 923238 (bus=BUS067, tarea=CAMBIAR FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, parte=FILTRO COMBUSTIBLE BAJA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:49 repository.go:575: [DEBUG] resolverIDsAnteriores: 938974 -> 938974 (bus=BUS054, tarea=CAMBIAR FILTRO ALTA PRESION GAS MOTOR RUNNER, parte=FILTRO ALTA PRESION GAS MOTOR RUNNER, zona=EQUIPO COMPLETO)
+2026/07/28 15:38:50 repository.go:665: [DEBUG] Lookup maps cargados: 50 causa_basica, 15 agrupador_tareas, 4126 empleados, 38 zona_maquina
+2026/07/28 15:38:50 repository.go:720: [DEBUG] Query Admon completada en 167.0397ms
+2026/07/28 15:38:50 repository.go:910: [DEBUG] Procesamiento de filas Admon completado (61 filas). Iniciando consulta de variables...
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS010 HORA_MOTOR: valor base=60764 + 1 días x 16h = 60780
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS048 HORA_MOTOR: valor base=57768 + 1 días x 16h = 57784
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS054 HORA_MOTOR: valor base=59867 + 9 días x 16h = 60011
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS067 HORA_MOTOR: valor base=63969 + 2 días x 16h = 64001
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS071 HORA_MOTOR: valor base=52195 + 2 días x 16h = 52227
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS095 HORA_MOTOR: valor base=59145 + 1 días x 16h = 59161
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS099 HORA_MOTOR: valor base=62708 + 2 días x 16h = 62740
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS108 HORA_MOTOR: valor base=55056 + 15 días x 16h = 55296
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS140 HORA_MOTOR: valor base=56403 + 2 días x 16h = 56435
+2026/07/28 15:38:50 repository.go:1120: [DEBUG] BUS238 HORA_MOTOR: valor base=45701 + 2 días x 16h = 45733
+2026/07/28 15:38:50 repository.go:1126: [DEBUG] getBatch: variables resueltas para 12 combinaciones de 42 pendientes
+2026/07/28 15:38:50 repository.go:919: [DEBUG] Consulta de variables completada en 331.4615ms
+2026/07/28 15:38:52 repository.go:923: [DEBUG] Consulta de valores MIN variables completada en 1.3360553s
+2026/07/28 15:38:52 repository.go:972: [DEBUG] Calculando DÍAS OPERADOS para 30 buses
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS002 DÍAS OPERADOS: valor base=4529 + 8 días = 4537
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS004 DÍAS OPERADOS: valor base=4510 + 8 días = 4518
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS026 DÍAS OPERADOS: valor base=4426 + 8 días = 4434
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS030 DÍAS OPERADOS: valor base=4503 + 8 días = 4511
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS032 DÍAS OPERADOS: valor base=4464 + 8 días = 4472
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS048 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS052 DÍAS OPERADOS: valor base=4445 + 8 días = 4453
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS054 DÍAS OPERADOS: valor base=4493 + 8 días = 4501
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS062 DÍAS OPERADOS: valor base=4394 + 8 días = 4402
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS064 DÍAS OPERADOS: valor base=4395 + 8 días = 4403
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS068 DÍAS OPERADOS: valor base=4500 + 8 días = 4508
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS072 DÍAS OPERADOS: valor base=4522 + 8 días = 4530
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS074 DÍAS OPERADOS: valor base=4452 + 8 días = 4460
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS076 DÍAS OPERADOS: valor base=4385 + 8 días = 4393
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS086 DÍAS OPERADOS: valor base=4283 + 8 días = 4291
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS092 DÍAS OPERADOS: valor base=4461 + 8 días = 4469
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS094 DÍAS OPERADOS: valor base=4403 + 8 días = 4411
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS096 DÍAS OPERADOS: valor base=4444 + 8 días = 4452
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS110 DÍAS OPERADOS: valor base=4471 + 8 días = 4479
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS112 DÍAS OPERADOS: valor base=4423 + 8 días = 4431
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS126 DÍAS OPERADOS: valor base=4404 + 8 días = 4412
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS130 DÍAS OPERADOS: valor base=4382 + 8 días = 4390
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS136 DÍAS OPERADOS: valor base=4242 + 8 días = 4250
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS154 DÍAS OPERADOS: valor base=4275 + 8 días = 4283
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS156 DÍAS OPERADOS: valor base=3597 + 8 días = 3605
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS200 DÍAS OPERADOS: valor base=3320 + 8 días = 3328
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS202 DÍAS OPERADOS: valor base=3492 + 8 días = 3500
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS204 DÍAS OPERADOS: valor base=3618 + 8 días = 3626
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS212 DÍAS OPERADOS: valor base=3556 + 8 días = 3564
+2026/07/28 15:38:53 repository.go:1263: [DEBUG] BUS228 DÍAS OPERADOS: valor base=3550 + 8 días = 3558
+2026/07/28 15:38:53 repository.go:1000: [DEBUG] [FIN] GetPartesParaExcel - Proceso completo en 1m4.1962075s. Filas finales: 61
+[15:37:49] 200 -  1m4.2001788s POST /api/reports/partes-excel
+[15:39:44] 204 -       524.4µs OPTIONS /api/auth/get-data
+[15:39:44] 204 -            0s OPTIONS /api/reports/lubricacion
+[15:39:44] 204 -            0s OPTIONS /api/reports/diagnostico
+[15:39:44] 204 -            0s OPTIONS /api/reports/engrase
+2026/07/28 15:39:44 repository.go:51: [DEBUG] Obteniendo info de perfil para: [daniel.salazar@sao6.com.co]
+[15:39:44] 200 -    645.4662ms GET /api/auth/get-data
+2026/07/28 15:39:45 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 116.5153ms para 104 IDs
+[15:39:44] 200 -    876.1291ms GET /api/reports/engrase
+2026/07/28 15:39:45 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 106.0327ms para 194 IDs
+[15:39:44] 200 -    928.7071ms GET /api/reports/diagnostico
+2026/07/28 15:39:46 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 522.3336ms para 533 IDs
+[15:39:44] 200 -    1.7567971s GET /api/reports/lubricacion
+[16:09:53] 204 -            0s OPTIONS /api/reports/lubricacion
+[16:09:53] 204 -            0s OPTIONS /api/reports/diagnostico
+[16:09:53] 204 -            0s OPTIONS /api/reports/engrase
+[16:09:53] 204 -            0s OPTIONS /api/auth/get-data
+2026/07/28 16:09:54 repository.go:51: [DEBUG] Obteniendo info de perfil para: [daniel.salazar@sao6.com.co]
+[16:09:53] 200 -     170.188ms GET /api/auth/get-data
+2026/07/28 16:09:54 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 68.9369ms para 104 IDs
+[16:09:53] 200 -    351.2132ms GET /api/reports/engrase
+2026/07/28 16:09:54 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 79.3004ms para 194 IDs
+[16:09:53] 200 -    502.1782ms GET /api/reports/diagnostico
+2026/07/28 16:09:55 repository.go:459: [DEBUG] GetDetalleTareaAdmon ejecutado en 405.3595ms para 533 IDs
+[16:09:53] 200 -    1.6223495s GET /api/reports/lubricacion
