@@ -9,7 +9,7 @@ SELECT
 FROM SE_W0550
 WHERE LTRIM(RTRIM(f_email_contacto)) = @p1 
   AND LTRIM(RTRIM(f_nit_empl)) = @p2
-  AND LTRIM(RTRIM(f_desc_cargo)) = 'PROFESIONAL DE PLANEACION Y PROGRAMACION'
+  AND LTRIM(RTRIM(f_desc_cargo)) IN ('PROFESIONAL DE PLANEACION Y PROGRAMACION', 'ANALISTA DE MANTENIMIENTO')
 GROUP BY 
     f_email_contacto, 
     f_nit_empl, 
