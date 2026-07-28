@@ -304,8 +304,10 @@ export default function DashboardActions({ onAgrupar }: DashboardActionsProps) {
                     const item = lista[idx];
                     if (!item || item.isPlaceholder) return;
 
-                    // rowId exacto: ${tablaIndex}-${filaIndex} tal como se generó en DashboardGrid
-                    const rowId = `${bt.tablaIndex}-${idx}`;
+                    // rowId ESTABLE: mismo criterio que DashboardGrid.selectedData.
+                    // ID de la tarea si existe; si no, tabla+bus+tarea. Así los assignments
+                    // (valorVariable, etc.) sobreviven re-ordenamientos de la tabla.
+                    const rowId = extraerID((item as any).tarea_abierta_posterior) || `${bt.tablaIndex}-${item.bus}-${item.tarea}`;
 
                     if (!tareasPorBusYTabla[item.bus]) {
                         tareasPorBusYTabla[item.bus] = { 1: [], 2: [], 3: [], 4: [] };

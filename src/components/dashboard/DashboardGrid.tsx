@@ -1026,8 +1026,14 @@ export default function DashboardGrid() {
         else if (tIndex === 3) { dataItem = diagnosticoData[fIndex]; gestion = 'Diagnóstico'; }
         else if (tIndex === 4) { dataItem = lubricacionChasisData[fIndex]; gestion = 'Lubricación Chasis'; }
 
+        // Clave ESTABLE para assignments: el ID de la tarea no cambia aunque la tabla
+        // se re-ordene (reagrupar/filtros). Fallback: tabla+bus+tarea. Esto evita que
+        // los valores editados/autocompletados se crucen entre buses al re-ordenar.
+        const taskId = extractTaskId(dataItem?.tarea_abierta_posterior);
+        const stableId = taskId || (dataItem ? `${tIndex}-${dataItem.bus}-${dataItem.tarea}` : key);
+
         return {
-            id: key,
+            id: stableId,
             bus: dataItem?.bus || '',
             tarea: dataItem?.tarea || '',
             gestion: gestion || '',
