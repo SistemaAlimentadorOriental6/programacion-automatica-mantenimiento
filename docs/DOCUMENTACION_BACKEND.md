@@ -14,7 +14,6 @@ API REST del sistema **SAO6 – Programación Automática** de mantenimiento. Es
 8. [Variables de entorno](#8-variables-de-entorno)
 9. [Comandos](#9-comandos)
 10. [Despliegue](#10-despliegue)
-11. [Puntos de mejora y riesgos](#11-puntos-de-mejora-y-riesgos)
 
 ## 1. Stack
 
@@ -171,8 +170,6 @@ El frontend guarda el token en `localStorage`.
 | `DB_NOMBRE_VARIABLES` | Base MySQL de variables (mismo servidor que la anterior) | vacío |
 | `MYSQL_ADMON_HOST`, `_PORT`, `_USER`, `_PASSWORD`, `_DATABASE` | MySQL Admon | `localhost`, `3306`, `root`, vacío, vacío |
 
-> [!NOTE]
-> `DB_PORT` aparece dos veces en `backend/.env`: una vez como puerto de SQL Server y otra como puerto de MySQL. El código solo lee `DB_PORT` para MySQL; SQL Server no usa puerto explícito.
 
 ## 9. Comandos
 
@@ -202,22 +199,3 @@ flowchart LR
 ```
 
 El `rsync` excluye `.env`, `backend.log`, `node_modules` y el binario `server`. Por eso el `.env` de producción se administra a mano en el servidor.
-
-## 11. Puntos de mejora y riesgos
-
-| Prioridad | Tema | Acción sugerida |
-|---|---|---|
-| Alta | `JWT_SECRET` con valor por defecto `default-secret` | Fallar al iniciar si no está definido |
-| Alta | La contraseña es el NIT del empleado | Dato conocido y no secreto; usar un segundo factor o un credencial real |
-| Alta | `CORS AllowOrigins: "*"` | Limitar a los dominios del frontend |
-| Alta | Revisar si `backend/.env` está versionado | Añadirlo a `.gitignore` y rotar las credenciales si estuvo en el repositorio |
-| Media | Errores internos (`err.Error()`) se devuelven al cliente | Registrar el detalle y responder un mensaje genérico |
-| Media | Sin límite de intentos de login | Añadir `limiter` de Fiber |
-| Media | `log.Printf` registra el correo de cada login | Evitar datos personales en logs |
-| Media | `jwt.Parse` no restringe el método de firma | Usar `jwt.WithValidMethods([]string{"HS256"})` |
-| Media | `reports` sin capa de servicio | Mover la lógica de negocio fuera del repositorio (`repository.go` pesa ~44 KB) |
-| Media | `main.go` y `server.go` repiten la apertura del log | Centralizar la configuración de logs |
-| Baja | Sin pruebas ni cierre ordenado (*graceful shutdown*) | Pruebas de servicio y `app.ShutdownWithContext` |
-| Baja | CI usa Go 1.22 y `go.mod` pide 1.25.1 | Alinear la versión |
-| Baja | `backend.log` pesa ~2.6 MB y crece sin rotación | Rotación con `lumberjack` o logs a stdout con PM2 |
-| Baja | `backend/scratch_*.go` en el directorio | Eliminarlos o moverlos fuera del módulo |
