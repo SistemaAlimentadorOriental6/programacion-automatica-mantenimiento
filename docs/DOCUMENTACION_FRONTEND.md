@@ -16,7 +16,6 @@ Aplicación web del sistema **SAO6 – Programación Automática**. Permite inic
 10. [Variables de entorno](#10-variables-de-entorno)
 11. [Comandos](#11-comandos)
 12. [Despliegue](#12-despliegue)
-13. [Puntos de mejora y riesgos](#13-puntos-de-mejora-y-riesgos)
 
 ## 1. Stack
 
@@ -141,8 +140,6 @@ Tailwind 4 con variables de color (`primary`, `texto-dark`, `texto-grey`) defini
 |---|---|---|
 | `PUBLIC_API_URL` | URL base de la API, se incrusta en el *build* | `http://localhost:4000/api` |
 
-> [!NOTE]
-> Al ser un sitio estático, `PUBLIC_API_URL` se fija al compilar. Hay que definirla antes de `pnpm build`.
 
 ## 11. Comandos
 
@@ -156,20 +153,3 @@ pnpm preview    # sirve dist/ localmente
 ## 12. Despliegue
 
 El workflow `.github/workflows/ci-cd.yml` compila con `pnpm run build` y sirve `dist/` con PM2 como `programacion_automatia_frontend` en el puerto **3044** (`pnpm dlx serve dist -l 3044`). El backend corre en el **3043**. Ver [el despliegue del backend](DOCUMENTACION_BACKEND.md#10-despliegue).
-
-## 13. Puntos de mejora y riesgos
-
-| Prioridad | Tema | Acción sugerida |
-|---|---|---|
-| Alta | Token en `localStorage` | Cookie `HttpOnly` emitida por el backend (mitiga el robo por XSS) |
-| Alta | Sin guarda de ruta en `/dashboard` | Redirigir a `/login` si no hay token y ante un `401` |
-| Alta | `PUBLIC_API_URL` ausente en producción cae a `localhost` | Definirla en el workflow y fallar el *build* si falta |
-| Media | Componentes enormes: `DashboardGrid` (~78 KB) y `DashboardActions` (~55 KB) | Dividir en hooks (`useReportes`, `useAsignaciones`) y subcomponentes |
-| Media | `fetch` repetido con el token en cada componente | Cliente único `apiFetch` en `src/config` que añada el token y trate el `401` |
-| Media | Uso de `any` (p. ej. `assignments`, `AsignacionTable`) | Tipar los modelos compartidos |
-| Media | Errores con `alert()` y `console.error` | Componente de notificaciones (*toast*) |
-| Media | Tipos de la API duplicados a mano | Centralizar en `src/types` según `reports/domain.go` |
-| Baja | `public/DSC_0010.JPG` pesa ~17 MB y `.webp` ~10 MB | Optimizar o reducir la resolución |
-| Baja | Sin pruebas | Vitest para la lógica de asignación y el cálculo de fechas |
-| Baja | Fuente cargada desde Google Fonts | Autoalojar con `@fontsource/inter` si la red es restringida |
-| Baja | `README.md` genérico de Astro | Enlazar esta documentación |
